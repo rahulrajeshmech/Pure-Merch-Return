@@ -1,29 +1,70 @@
 # Pure-Merch-Return
 
-A simple page for keeping track of which **part + invoice** combinations have already been used for a supplier return.
+A Google tool for supplier returns:
 
-## Setup (one time, for whoever sets up the PC)
+1. Type a part number.
+2. It finds every invoice PDF in your Gmail that contains that part (any supplier, any layout).
+3. Tap one invoice and press **RETURN**.
+4. It shows the invoice number to write on the part and saves the return to a Google Sheet
+   (downloadable as Excel).
 
-1. Copy `returns.html` to the Desktop of the PC used for returns.
-2. Open it in Chrome or Edge and leave that browser as the one used for it.
-3. Optional: make a desktop shortcut called **Returns**.
+Invoices where that part was already returned are greyed out, so the same part is never returned
+twice against the same invoice. Other parts on that invoice are not affected.
 
-No internet or installation is needed. Records are saved inside that browser on that PC.
+The code is in [`apps-script/`](apps-script). It runs inside your own Google account: no server,
+no cost, and your email never leaves Google.
 
-## How to use (for the person doing returns)
+## The spreadsheet
 
-1. Type the **part number**.
-   - The page shows which invoices have already been used for that part.
-2. Search the part number in email as usual and pick an invoice that is **not** on that list.
-3. Type the **invoice number**.
-   - **Green** = OK. Press **SAVE RETURN** (or Enter). Write the invoice number on the part.
-   - **Red** = already used. Pick a different invoice.
+- **Returns**: one row per return with date returned, part number, invoice number, supplier,
+  email date, email subject, PDF file name and a link to the email. Newest first, with filters.
+- **By Invoice**: grouped by supplier and invoice, listing each part returned against it.
+- **Download Excel**: link at the top of the tool, or in the sheet use File → Download → Microsoft Excel.
 
-Spaces, dashes and capital letters don't matter: `bp-1234` and `BP1234` count as the same part.
+## Setup (one time, about 10 minutes)
 
-If one invoice had **more than one** of the same part, the small red link under the warning lets you save it again.
+Do this signed in to the Google account that **receives the supplier invoices**.
 
-## Backup
+1. Go to <https://sheets.new> and name the sheet **Parts Returns**.
+2. Click **Extensions → Apps Script**. A code editor opens.
+3. Click the **gear (Project Settings)** on the left:
+   - Tick **Show "appsscript.json" manifest file in editor**.
+   - Set **Time zone** to yours.
+4. Back in the **Editor** (`< >` icon):
+   - Open `Code.gs`, delete what's there, paste in [`apps-script/Code.gs`](apps-script/Code.gs).
+   - Open `appsscript.json`, delete what's there, paste in [`apps-script/appsscript.json`](apps-script/appsscript.json).
+   - Click **+ → HTML**, name it `Index` (no `.html`), delete what's there, paste in
+     [`apps-script/Index.html`](apps-script/Index.html).
+   - Click **Save** (disk icon).
+5. In the toolbar, pick **setup** from the function drop-down and click **Run**.
+   - Google asks for permission: **Review permissions** → choose your account →
+     **Advanced** → **Go to … (unsafe)** → **Allow**.
+     The "unverified" warning is normal for a script you wrote yourself; it only runs in your account.
+   - The sheet now has **Returns** and **By Invoice** tabs.
+6. Click **Deploy → New deployment** → gear → **Web app**:
+   - Execute as: **Me**
+   - Who has access: **Only myself**
+   - Click **Deploy** and copy the **Web app URL**.
+7. On the returns PC, open Chrome **signed in to that same Google account**, open the URL, and
+   create a desktop shortcut (Chrome menu ⋮ → **Cast, save and share → Create shortcut**, name it **Returns**).
 
-Open **Past returns** and click **Save backup file** about once a week. If the browser data is ever
-cleared or you move to a new PC, open the page and click **Load backup file**.
+### Changing the code later
+
+Paste the new code, save, then **Deploy → Manage deployments → ✎ edit → Version: New version → Deploy**.
+The URL stays the same.
+
+## Good to know
+
+- **Finding invoices** uses Gmail's own search, so it finds what typing the part number into Gmail finds.
+  It shows the newest 25 matching emails from the last 3 years (change `MAX_EMAILS` / `SEARCH_EXTRA`
+  at the top of `Code.gs`).
+- **Reading the PDF** uses Google Drive's text recognition, so any supplier layout works, scans included.
+  Each PDF takes a few seconds the first time; after that it is remembered (hidden `_pdf_cache` tab).
+- **Invoice number** is a best guess from the PDF ("Invoice No", "Invoice #", "Bill No", …), then the
+  email subject, then the file name. When an invoice is selected the number is shown in a box so it can
+  be corrected; if no number was found, it must be typed in.
+- Each card shows the line from the PDF that contains the part, and warns if the part could not be
+  seen in that PDF.
+- If one invoice had more than one of the same part, a greyed-out card has a small
+  **"return again"** link.
+- Work (Google Workspace) accounts: your IT admin may need to allow Apps Script.
