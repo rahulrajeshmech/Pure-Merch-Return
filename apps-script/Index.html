@@ -37,6 +37,7 @@
   .tag.warn { background: #fff4d6; color: var(--warn); }
   .card a { font-size: 16px; color: #2f6fed; }
   .again { background: none; color: var(--bad); text-decoration: underline; font-size: 15px; padding: 0; margin-left: 10px; }
+  .msg .again { color: var(--muted); font-size: 17px; margin: 0; }
   .fix { margin-top: 12px; }
   .fix label { font-size: 16px; color: var(--muted); display: block; margin-bottom: 4px; }
   .fix input { font-size: 24px; padding: 8px 12px; }
@@ -86,7 +87,9 @@ const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '
 const call = (fn, ...args) => new Promise((ok, fail) =>
   google.script.run.withSuccessHandler(ok).withFailureHandler(fail)[fn](...args));
 
-let state = null;   // { part, items, returnedInvoices, details: {key: {...}}, sel, again: {key: true}, search }
+// { part, search, loaded, items (not returned per Gmail key), returned, returnedInvoices, show,
+//   details: {key: {invoice, found, line}}, sel, typed, again: {key: true}, showReturned }
+let state = null;
 
 call('getConfig').then(c => { $('sheetLink').href = c.sheetUrl; $('excelLink').href = c.excelUrl; });
 
@@ -95,19 +98,13 @@ $('form').addEventListener('submit', async e => {
   const part = $('part').value.trim();
   if (!part) return;
   const search = Symbol();
-  state = { part, items: [], returnedInvoices: [], details: {}, sel: null, again: {}, search };
-  showMsg('Searching your email for ' + part + '…');
+  state = { part, search, loaded: false, items: [], returned: [], returnedInvoices: [], show: 15,
+            details: {}, sel: null, again: {}, showReturned: false };
   render();
   try {
     const res = await call('searchPart', part);
     if (state.search !== search) return;
-    Object.assign(state, res);
-    if (!res.items.length) {
-      showMsg('No invoices found with part ' + part + '. Check the part number and try again.', true);
-      return;
-    }
-    showMsg('Found ' + res.items.length + ' invoice' + (res.items.length > 1 ? 's' : '') +
-            '. Tap one, then press RETURN.');
+    Object.assign(state, res, { loaded: true });
     render();
     readAll(search);
   } catch (err) {
@@ -115,19 +112,22 @@ $('form').addEventListener('submit', async e => {
   }
 });
 
-// Read the PDFs a few at a time so results fill in as they are ready.
+// Read the PDFs on screen a few at a time so results fill in as they are ready.
+// If one turns out to be already returned, the next invoice takes its place and is read too.
 async function readAll(search) {
-  const queue = state.items.slice();
+  const busy = {};
   const worker = async () => {
-    while (queue.length && state.search === search) {
-      const item = queue.shift();
-      try {
-        const d = await call('readInvoice', item, state.part);
-        if (state.search === search) state.details[item.key] = d;
-      } catch (err) {
-        if (state.search === search) state.details[item.key] = { invoice: '', found: false, line: '', error: true };
-      }
-      if (state.search === search) render();
+    for (;;) {
+      if (state.search !== search) return;
+      const item = available().find(i => !state.details[i.key] && !busy[i.key]);
+      if (!item) return;
+      busy[item.key] = true;
+      let d;
+      try { d = await call('readInvoice', item, state.part); }
+      catch (err) { d = { invoice: '', found: false, line: '', error: true }; }
+      if (state.search !== search) return;
+      state.details[item.key] = d;
+      render();
     }
   };
   await Promise.all([worker(), worker(), worker(), worker()]);
@@ -140,42 +140,76 @@ function returnedOn(item) {
   return hit ? hit.when : '';
 }
 
+// Invoices the part can be returned against: newest first, up to `show` of them,
+// plus any already-returned one the user chose to return again.
+function available() {
+  const again = state.returned.concat(state.items).filter(i => state.again[i.key]);
+  const fresh = state.items.filter(i => !state.again[i.key] && !returnedOn(i)).slice(0, state.show);
+  return again.concat(fresh);
+}
+
+function alreadyReturned() {
+  return state.returned.concat(state.items).filter(i => !state.again[i.key] && returnedOn(i));
+}
+
 function rank(item) {
   const d = state.details[item.key];
-  if (returnedOn(item) && !state.again[item.key]) return 3;
   if (!d) return 1;
   return d.found ? 0 : 2;
 }
 
+function card(item) {
+  const d = state.details[item.key];
+  const done = returnedOn(item);
+  const off = done && !state.again[item.key];
+  const sel = state.sel === item.key;
+  const invoice = d ? d.invoice : item.returnedInvoice;
+  let inv;
+  if (invoice) inv = '<div class="inv">Invoice ' + esc(invoice) + '</div>';
+  else if (!d) inv = '<div class="inv reading">Reading invoice…</div>';
+  else inv = '<div class="inv reading">Invoice number not found — open the PDF to check</div>';
+  return '<div class="card' + (sel ? ' sel' : '') + (off ? ' off' : '') + '" data-key="' + esc(item.key) + '">'
+    + '<div class="top"><b>' + esc(item.supplier) + '</b><span>' + esc(item.dateText) + '</span></div>'
+    + inv
+    + (d && d.line ? '<div class="line">' + esc(d.line) + '</div>' : '')
+    + (done ? '<span class="tag bad">Already returned on ' + esc(done) + '</span>'
+        + (off ? '<button class="again" data-again="' + esc(item.key) + '">had more than one? return again</button>' : '') : '')
+    + (d && !d.found && !d.error ? '<span class="tag warn">Part number not seen in this PDF</span>' : '')
+    + (d && d.error ? '<span class="tag warn">Could not read this PDF</span>' : '')
+    + '<div><a href="https://mail.google.com/mail/u/0/#all/' + esc(item.threadId) + '" target="_blank">Open email</a></div>'
+    + (sel ? '<div class="fix"><label>Invoice number (fix it if it does not match the PDF):</label>'
+        + '<input type="text" id="invoiceFix" value="' + esc(currentInvoice()) + '"></div>' : '')
+    + '</div>';
+}
+
 function render() {
   if (!state) return;
+  if (!state.loaded) {
+    showMsg('Searching your email for ' + state.part + '…');
+    $('results').innerHTML = '';
+    updateButton();
+    return;
+  }
   // Results re-render as PDFs finish reading; keep the cursor in the invoice box.
   const active = document.activeElement;
   const hadFocus = active && active.id === 'invoiceFix';
   const caret = hadFocus ? active.selectionStart : 0;
-  const items = state.items.slice().sort((a, b) => rank(a) - rank(b) || b.dateIso.localeCompare(a.dateIso));
-  $('results').innerHTML = items.map(item => {
-    const d = state.details[item.key];
-    const done = returnedOn(item);
-    const off = done && !state.again[item.key];
-    const sel = state.sel === item.key;
-    let inv;
-    if (!d) inv = '<div class="inv reading">Reading invoice…</div>';
-    else if (d.invoice) inv = '<div class="inv">Invoice ' + esc(d.invoice) + '</div>';
-    else inv = '<div class="inv reading">Invoice number not found — open the PDF to check</div>';
-    return '<div class="card' + (sel ? ' sel' : '') + (off ? ' off' : '') + '" data-key="' + esc(item.key) + '">'
-      + '<div class="top"><b>' + esc(item.supplier) + '</b><span>' + esc(item.dateText) + '</span></div>'
-      + inv
-      + (d && d.line ? '<div class="line">' + esc(d.line) + '</div>' : '')
-      + (done ? '<span class="tag bad">Already returned on ' + esc(done) + '</span>'
-          + (off ? '<button class="again" data-again="' + esc(item.key) + '">had more than one? return again</button>' : '') : '')
-      + (d && !d.found && !d.error ? '<span class="tag warn">Part number not seen in this PDF</span>' : '')
-      + (d && d.error ? '<span class="tag warn">Could not read this PDF</span>' : '')
-      + '<div><a href="https://mail.google.com/mail/u/0/#all/' + esc(item.threadId) + '" target="_blank">Open email</a></div>'
-      + (sel ? '<div class="fix"><label>Invoice number (fix it if it does not match the PDF):</label>'
-          + '<input type="text" id="invoiceFix" value="' + esc(currentInvoice()) + '"></div>' : '')
-      + '</div>';
-  }).join('');
+
+  const list = available().sort((a, b) => rank(a) - rank(b) || b.dateIso.localeCompare(a.dateIso));
+  const used = alreadyReturned();
+  if (!list.length && !used.length) {
+    showMsg('No invoices found with part ' + state.part + '. Check the part number and try again.', true);
+  } else if (!list.length) {
+    showMsg('This part has already been returned on every invoice found.', true);
+  } else {
+    showMsg(list.length + (list.length === 1 ? ' invoice' : ' invoices') +
+            ' where this part has not been returned. Tap one, then press RETURN.');
+  }
+  $('results').innerHTML = list.map(card).join('')
+    + (used.length ? '<p class="msg"><button class="again" data-toggle="1">'
+        + (state.showReturned ? 'Hide' : 'Show') + ' ' + used.length + ' already returned</button></p>' : '')
+    + (state.showReturned ? used.map(card).join('') : '');
+
   const fix = $('invoiceFix');
   if (fix && hadFocus) { fix.focus(); fix.setSelectionRange(caret, caret); }
   if (fix) fix.addEventListener('input', () => { state.typed = fix.value; updateButton(); });
@@ -194,11 +228,13 @@ function updateButton() {
 
 $('results').addEventListener('click', e => {
   if (e.target.closest('a') || e.target.closest('input')) return;
+  if (e.target.dataset.toggle) { state.showReturned = !state.showReturned; render(); return; }
   const again = e.target.dataset.again;
   if (again) {
     if (confirm('Only do this if that invoice had MORE THAN ONE of this part.\n\nReturn another one from it?')) {
       state.again[again] = true;
       select(again);
+      readAll(state.search);
     }
     return;
   }
@@ -213,7 +249,7 @@ function select(key) {
 }
 
 $('returnBtn').addEventListener('click', async () => {
-  const item = state.items.find(i => i.key === state.sel);
+  const item = state.items.concat(state.returned).find(i => i.key === state.sel);
   const invoice = currentInvoice().trim();
   if (!item || !invoice) return;
   $('returnBtn').disabled = true;

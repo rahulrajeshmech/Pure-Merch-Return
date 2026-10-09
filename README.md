@@ -8,7 +8,7 @@ A Google tool for supplier returns:
 4. It shows the invoice number to write on the part and saves the return to a Google Sheet
    (downloadable as Excel).
 
-Invoices where that part was already returned are greyed out, so the same part is never returned
+It lists 15 invoices where that part has **not** been returned yet, so the same part is never returned
 twice against the same invoice. Other parts on that invoice are not affected.
 
 The code is in [`apps-script/`](apps-script). It runs inside your own Google account: no server,
@@ -56,8 +56,9 @@ The URL stays the same.
 ## Good to know
 
 - **Finding invoices** uses Gmail's own search, so it finds what typing the part number into Gmail finds.
-  It shows the newest 25 matching emails from the last 3 years (change `MAX_EMAILS` / `SEARCH_EXTRA`
-  at the top of `Code.gs`).
+  It shows the **15 newest invoices where that part has not been returned yet**, going as far back as
+  needed (up to 300 emails). Invoices already used for that part are hidden behind a
+  "Show … already returned" link. Change `SHOW_INVOICES` at the top of `Code.gs` for a different number.
 - **Reading the PDF** uses Google Drive's text recognition, so any supplier layout works, scans included.
   Each PDF takes a few seconds the first time; after that it is remembered (hidden `_pdf_cache` tab).
 - **Invoice number** is a best guess from the PDF ("Invoice No", "Invoice #", "Bill No", …), then the
@@ -65,6 +66,6 @@ The URL stays the same.
   be corrected; if no number was found, it must be typed in.
 - Each card shows the line from the PDF that contains the part, and warns if the part could not be
   seen in that PDF.
-- If one invoice had more than one of the same part, a greyed-out card has a small
-  **"return again"** link.
-- Work (Google Workspace) accounts: your IT admin may need to allow Apps Script.
+- If one invoice had more than one of the same part, open **Show … already returned** and use the small
+  **"return again"** link on that invoice.
+- Works with a personal Gmail account. Work (Google Workspace) accounts may need the IT admin to allow Apps Script.

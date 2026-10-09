@@ -7,10 +7,13 @@
  * recognition and the invoice number is guessed, then confirmed by the user.
  */
 
-// Only the newest matching emails are shown. Any invoice will do for a return,
-// so there is no need to dig through years of mail.
-const MAX_EMAILS = 25;
-const SEARCH_EXTRA = 'has:attachment filename:pdf newer_than:3y';
+// How many not-yet-returned invoices to show. A few spares are fetched in case
+// one turns out to be an invoice already used under a different email.
+const SHOW_INVOICES = 15;
+const SPARE_INVOICES = 5;
+// Stop looking after this many emails, so a very common part can't stall the search.
+const MAX_EMAILS_SCANNED = 300;
+const SEARCH_EXTRA = 'has:attachment filename:pdf';
 
 const RETURNS = 'Returns';
 const BY_INVOICE = 'By Invoice';
@@ -37,39 +40,51 @@ function getConfig() {
 }
 
 /**
- * Finds every PDF attachment in emails matching the part number. Fast: does
- * not open the PDFs (readInvoice does that, one at a time, from the page).
+ * Finds PDF attachments in emails matching the part number, newest first, until
+ * there are enough where the part has not been returned yet. Fast: does not open
+ * the PDFs (readInvoice does that, one at a time, from the page).
  */
 function searchPart(part) {
   part = String(part || '').trim();
-  if (!part) return { items: [], returnedInvoices: [] };
+  const out = { items: [], returned: [], returnedInvoices: [], show: SHOW_INVOICES };
+  if (!part) return out;
 
   const q = '"' + part.replace(/"/g, '') + '" ' + SEARCH_EXTRA;
-  const res = Gmail.Users.Messages.list('me', { q: q, maxResults: MAX_EMAILS });
   const done = returnedFor_(part);
+  out.returnedInvoices = done.invoices;
   const tz = ss_().getSpreadsheetTimeZone();
+  const wanted = SHOW_INVOICES + SPARE_INVOICES;
 
-  const items = [];
-  (res.messages || []).forEach(function (m) {
-    const msg = GmailApp.getMessageById(m.id);
-    msg.getAttachments({ includeInlineImages: false }).forEach(function (a, i) {
-      if (!isPdf_(a)) return;
-      const key = m.id + ':' + i;
-      items.push({
-        key: key,
-        messageId: m.id,
-        threadId: m.threadId,
-        index: i,
-        fileName: a.getName(),
-        supplier: supplierName_(msg.getFrom()),
-        subject: msg.getSubject(),
-        dateIso: msg.getDate().toISOString(),
-        dateText: Utilities.formatDate(msg.getDate(), tz, 'd MMM yyyy'),
-        returnedOn: done.keys[key] || '',
+  let pageToken, scanned = 0;
+  do {
+    const res = Gmail.Users.Messages.list('me', { q: q, maxResults: 50, pageToken: pageToken });
+    pageToken = res.nextPageToken;
+    const messages = res.messages || [];
+    for (let n = 0; n < messages.length && out.items.length < wanted; n++) {
+      const m = messages[n];
+      scanned++;
+      const msg = GmailApp.getMessageById(m.id);
+      msg.getAttachments({ includeInlineImages: false }).forEach(function (a, i) {
+        if (!isPdf_(a)) return;
+        const key = m.id + ':' + i;
+        const item = {
+          key: key,
+          messageId: m.id,
+          threadId: m.threadId,
+          index: i,
+          fileName: a.getName(),
+          supplier: supplierName_(msg.getFrom()),
+          subject: msg.getSubject(),
+          dateIso: msg.getDate().toISOString(),
+          dateText: Utilities.formatDate(msg.getDate(), tz, 'd MMM yyyy'),
+            returnedOn: done.keys[key] ? done.keys[key].when : '',
+          returnedInvoice: done.keys[key] ? done.keys[key].invoice : '',
+        };
+        (item.returnedOn ? out.returned : out.items).push(item);
       });
-    });
-  });
-  return { items: items, returnedInvoices: done.invoices };
+    }
+  } while (pageToken && out.items.length < wanted && scanned < MAX_EMAILS_SCANNED);
+  return out;
 }
 
 /** Reads one PDF and returns its guessed invoice number and the line with the part. */
@@ -187,7 +202,7 @@ function returnedFor_(part) {
   sh.getRange(2, 1, sh.getLastRow() - 1, RETURN_HEADERS.length).getValues().forEach(function (r) {
     if (norm_(r[COL.part - 1]) !== p) return;
     const when = r[0] instanceof Date ? Utilities.formatDate(r[0], tz, 'd MMM yyyy') : String(r[0]);
-    out.keys[String(r[COL.key - 1]).split('|')[1]] = when;
+    out.keys[String(r[COL.key - 1]).split('|')[1]] = { when: when, invoice: String(r[COL.invoice - 1]) };
     out.invoices.push({ invoice: norm_(r[COL.invoice - 1]), when: when });
   });
   return out;
