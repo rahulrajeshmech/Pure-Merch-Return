@@ -26,6 +26,8 @@ const COL = { date: 1, part: 2, invoice: 3, supplier: 4, key: 9 };
 // Web app
 
 function doGet() {
+  // First time the page is opened: create the tabs.
+  if (!ss_().getSheetByName(RETURNS)) setup();
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('Parts Returns')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
@@ -130,10 +132,11 @@ function recordReturn(item, part, invoice) {
 }
 
 // ---------------------------------------------------------------------------
-// One-time setup: run this from the Apps Script editor.
+// One-time setup. Runs by itself the first time the page is opened; can also be
+// run from the Apps Script editor.
 
 function setup() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = ss_();
   PropertiesService.getScriptProperties().setProperty('SHEET_ID', ss.getId());
 
   let sh = ss.getSheetByName(RETURNS) || ss.insertSheet(RETURNS, 0);
@@ -158,9 +161,6 @@ function setup() {
   const blank = ss.getSheetByName('Sheet1');
   if (blank && blank.getLastRow() === 0) ss.deleteSheet(blank);
 
-  // Touch each service so Google asks for every permission now, not mid-use.
-  Gmail.Users.Messages.list('me', { maxResults: 1 });
-  Drive.Files.list({ pageSize: 1 });
   Logger.log('Setup done.');
 }
 
@@ -169,12 +169,14 @@ function setup() {
 
 function ss_() {
   const id = PropertiesService.getScriptProperties().getProperty('SHEET_ID');
-  return id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActiveSpreadsheet();
+  const ss = id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) throw new Error('Open the Apps Script editor from the sheet (Extensions → Apps Script) and paste the code there.');
+  return ss;
 }
 
 function sheet_(name) {
   const sh = ss_().getSheetByName(name);
-  if (!sh) throw new Error('Tab "' + name + '" is missing. Run setup() once from the script editor.');
+  if (!sh) throw new Error('Tab "' + name + '" is missing. Reload the page to recreate it.');
   return sh;
 }
 

@@ -36,15 +36,15 @@ Do this signed in to the Google account that **receives the supplier invoices**.
    - Click **+ → HTML**, name it `Index` (no `.html`), delete what's there, paste in
      [`apps-script/Index.html`](apps-script/Index.html).
    - Click **Save** (disk icon).
-5. In the toolbar, pick **setup** from the function drop-down and click **Run**.
-   - Google asks for permission: **Review permissions** → choose your account →
-     **Advanced** → **Go to … (unsafe)** → **Allow**.
-     The "unverified" warning is normal for a script you wrote yourself; it only runs in your account.
-   - The sheet now has **Returns** and **By Invoice** tabs.
-6. Click **Deploy → New deployment** → gear → **Web app**:
+5. Click **Deploy → New deployment** → gear → **Web app**:
    - Execute as: **Me**
    - Who has access: **Only myself**
-   - Click **Deploy** and copy the **Web app URL**.
+   - Click **Deploy**. If it asks to **Authorize access**: choose your account → **Advanced** →
+     **Go to … (unsafe)** → **Allow**. The "unverified" warning is normal for a script you added
+     yourself; it only runs in your account.
+   - Copy the **Web app URL**.
+6. Open that URL. The first time, Google may ask for permission again (same steps as above).
+   The tool then creates the **Returns** and **By Invoice** tabs in your sheet by itself.
 7. On the returns PC, open Chrome **signed in to that same Google account**, open the URL, and
    create a desktop shortcut (Chrome menu ⋮ → **Cast, save and share → Create shortcut**, name it **Returns**).
 
