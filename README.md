@@ -36,26 +36,33 @@ Do this signed in to the Google account that **receives the supplier invoices**.
    - Click **+ → HTML**, name it `Index` (no `.html`), delete what's there, paste in
      [`apps-script/Index.html`](apps-script/Index.html).
    - Click **Save** (disk icon).
-5. In the toolbar, pick **setup** from the function drop-down and click **Run**.
-   - Google asks for permission: **Review permissions** → choose your account →
-     **Advanced** → **Go to … (unsafe)** → **Allow**.
-     The "unverified" warning is normal for a script you wrote yourself; it only runs in your account.
-   - The sheet now has **Returns** and **By Invoice** tabs.
-6. Click **Deploy → New deployment** → gear → **Web app**:
+5. Click **Deploy → New deployment** → gear → **Web app**:
    - Execute as: **Me**
    - Who has access: **Only myself**
-   - Click **Deploy** and copy the **Web app URL**.
+   - Click **Deploy**. If it asks to **Authorize access**: choose your account → **Advanced** →
+     **Go to … (unsafe)** → **Allow**. The "unverified" warning is normal for a script you added
+     yourself; it only runs in your account.
+   - Copy the **Web app URL**.
+6. Open that URL. The first time, Google may ask for permission again (same steps as above).
+   The tool then creates the **Returns** and **By Invoice** tabs in your sheet by itself.
 7. On the returns PC, open Chrome **signed in to that same Google account**, open the URL, and
    create a desktop shortcut (Chrome menu ⋮ → **Cast, save and share → Create shortcut**, name it **Returns**).
 
-### Changing the code later
+### Updating to a new version of the code
 
-Paste the new code, save, then **Deploy → Manage deployments → ✎ edit → Version: New version → Deploy**.
-The URL stays the same.
+1. Open the Google Sheet → **Extensions → Apps Script**.
+2. For each changed file (`Code.gs`, `Index.html`): click it on the left, select all (**Ctrl + A**),
+   delete, paste the new version, and press **Ctrl + S**.
+3. Click **Deploy → Manage deployments**. Click the **pencil ✎** on the right, set **Version** to
+   **New version**, and click **Deploy**.
+4. Reload the tool in Chrome. The URL and desktop shortcut stay the same.
+
+Skipping step 3 means the tool keeps running the old code.
 
 ## Good to know
 
 - **Finding invoices** uses Gmail's own search, so it finds what typing the part number into Gmail finds.
+  Dashes, spaces and slashes don't matter: `ch8115`, `CH-8115` and `CH 8115` all find the same invoices.
   It shows the **15 newest invoices where that part has not been returned yet**, going as far back as
   needed (up to 300 emails). Invoices already used for that part are hidden behind a
   "Show … already returned" link. Change `SHOW_INVOICES` at the top of `Code.gs` for a different number.
@@ -66,6 +73,11 @@ The URL stays the same.
   be corrected; if no number was found, it must be typed in.
 - Each card shows the line from the PDF that contains the part, and warns if the part could not be
   seen in that PDF.
+- **Undo a mistake:**
+  - Straight after saving: press **UNDO — that was a mistake** on the "Write this on the part" screen.
+  - Later: search the part, click **Show … already returned**, and click **undo this return** on that invoice.
+  - Either way the row is removed from the spreadsheet and the invoice is free to use again.
+    Cross out the invoice number if it was already written on the part.
 - If one invoice had more than one of the same part, open **Show … already returned** and use the small
   **"return again"** link on that invoice.
 - Works with a personal Gmail account. Work (Google Workspace) accounts may need the IT admin to allow Apps Script.

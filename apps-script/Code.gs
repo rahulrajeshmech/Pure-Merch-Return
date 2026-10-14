@@ -26,6 +26,8 @@ const COL = { date: 1, part: 2, invoice: 3, supplier: 4, key: 9 };
 // Web app
 
 function doGet() {
+  // First time the page is opened: create the tabs.
+  if (!ss_().getSheetByName(RETURNS)) setup();
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('Parts Returns')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
@@ -49,7 +51,7 @@ function searchPart(part) {
   const out = { items: [], returned: [], returnedInvoices: [], show: SHOW_INVOICES };
   if (!part) return out;
 
-  const q = '"' + part.replace(/"/g, '') + '" ' + SEARCH_EXTRA;
+  const q = partQuery_(part) + ' ' + SEARCH_EXTRA;
   const done = returnedFor_(part);
   out.returnedInvoices = done.invoices;
   const tz = ss_().getSpreadsheetTimeZone();
@@ -129,11 +131,45 @@ function recordReturn(item, part, invoice) {
   return { invoice: invoice };
 }
 
+/**
+ * Undoes a return: deletes the newest matching row from the Returns tab.
+ * Matches the exact invoice PDF first, then the same part + invoice number
+ * (for invoices that were returned under a different email).
+ */
+function undoReturn(item, part, invoice) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sh = sheet_(RETURNS);
+    if (sh.getLastRow() < 2) throw new Error('There is no return to undo.');
+    const rows = sh.getRange(2, 1, sh.getLastRow() - 1, RETURN_HEADERS.length).getValues();
+    const key = norm_(part) + '|' + item.key;
+    const byKey = function (r) { return r[COL.key - 1] === key; };
+    const byInvoice = function (r) {
+      return norm_(r[COL.part - 1]) === norm_(part) && norm_(r[COL.invoice - 1]) === norm_(invoice);
+    };
+    let found = -1;
+    [byKey, byInvoice].some(function (match) {
+      rows.forEach(function (r, i) {
+        if (match(r) && (found === -1 || r[COL.date - 1] > rows[found][COL.date - 1])) found = i;
+      });
+      return found !== -1;
+    });
+    if (found === -1) throw new Error('That return was not found. It may already have been undone.');
+    sh.deleteRow(found + 2);
+    rebuildByInvoice_();
+    return { invoice: String(rows[found][COL.invoice - 1]) };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 // ---------------------------------------------------------------------------
-// One-time setup: run this from the Apps Script editor.
+// One-time setup. Runs by itself the first time the page is opened; can also be
+// run from the Apps Script editor.
 
 function setup() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = ss_();
   PropertiesService.getScriptProperties().setProperty('SHEET_ID', ss.getId());
 
   let sh = ss.getSheetByName(RETURNS) || ss.insertSheet(RETURNS, 0);
@@ -158,9 +194,6 @@ function setup() {
   const blank = ss.getSheetByName('Sheet1');
   if (blank && blank.getLastRow() === 0) ss.deleteSheet(blank);
 
-  // Touch each service so Google asks for every permission now, not mid-use.
-  Gmail.Users.Messages.list('me', { maxResults: 1 });
-  Drive.Files.list({ pageSize: 1 });
   Logger.log('Setup done.');
 }
 
@@ -169,12 +202,14 @@ function setup() {
 
 function ss_() {
   const id = PropertiesService.getScriptProperties().getProperty('SHEET_ID');
-  return id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActiveSpreadsheet();
+  const ss = id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) throw new Error('Open the Apps Script editor from the sheet (Extensions → Apps Script) and paste the code there.');
+  return ss;
 }
 
 function sheet_(name) {
   const sh = ss_().getSheetByName(name);
-  if (!sh) throw new Error('Tab "' + name + '" is missing. Run setup() once from the script editor.');
+  if (!sh) throw new Error('Tab "' + name + '" is missing. Reload the page to recreate it.');
   return sh;
 }
 
@@ -190,6 +225,38 @@ function isPdf_(att) {
 function supplierName_(from) {
   const m = String(from).match(/^\s*"?([^"<]+?)"?\s*</);
   return (m ? m[1] : String(from).replace(/[<>]/g, '')).trim();
+}
+
+/**
+ * Gmail treats dashes, spaces and slashes as word breaks, so "CH-8115" is stored as
+ * "CH 8115" and a search for "ch8115" misses it (and the other way round). Search
+ * for every likely way of writing the part: joined up, and split where letters
+ * meet digits (CH8115 / CH 8115 / CH-8115).
+ */
+function partQuery_(part) {
+  const typed = String(part).replace(/["()]/g, ' ').replace(/[^A-Za-z0-9]+/g, ' ').trim();
+  const joined = norm_(part);
+  // Positions where a letter meets a digit, e.g. CH|8115 or AB|12|CD.
+  const cuts = [];
+  for (let i = 1; i < joined.length; i++) {
+    if (/[A-Z]/.test(joined[i - 1]) !== /[A-Z]/.test(joined[i])) cuts.push(i);
+  }
+  const splitAt = function (positions) {
+    let out = '', last = 0;
+    positions.forEach(function (p) { out += joined.slice(last, p) + ' '; last = p; });
+    return out + joined.slice(last);
+  };
+  const variants = [typed, joined, splitAt(cuts)];
+  if (cuts.length <= 4) cuts.forEach(function (c) { variants.push(splitAt([c])); });
+
+  const seen = {};
+  const terms = variants.filter(function (v) {
+    const k = v.toUpperCase();
+    if (!v || seen[k]) return false;
+    seen[k] = true;
+    return true;
+  }).map(function (v) { return '"' + v + '"'; });
+  return terms.length > 1 ? '{' + terms.join(' ') + '}' : terms[0];
 }
 
 /** Already-returned PDFs and invoice numbers for this part. */
