@@ -51,7 +51,7 @@ function searchPart(part) {
   const out = { items: [], returned: [], returnedInvoices: [], show: SHOW_INVOICES };
   if (!part) return out;
 
-  const q = '"' + part.replace(/"/g, '') + '" ' + SEARCH_EXTRA;
+  const q = partQuery_(part) + ' ' + SEARCH_EXTRA;
   const done = returnedFor_(part);
   out.returnedInvoices = done.invoices;
   const tz = ss_().getSpreadsheetTimeZone();
@@ -225,6 +225,38 @@ function isPdf_(att) {
 function supplierName_(from) {
   const m = String(from).match(/^\s*"?([^"<]+?)"?\s*</);
   return (m ? m[1] : String(from).replace(/[<>]/g, '')).trim();
+}
+
+/**
+ * Gmail treats dashes, spaces and slashes as word breaks, so "CH-8115" is stored as
+ * "CH 8115" and a search for "ch8115" misses it (and the other way round). Search
+ * for every likely way of writing the part: joined up, and split where letters
+ * meet digits (CH8115 / CH 8115 / CH-8115).
+ */
+function partQuery_(part) {
+  const typed = String(part).replace(/["()]/g, ' ').replace(/[^A-Za-z0-9]+/g, ' ').trim();
+  const joined = norm_(part);
+  // Positions where a letter meets a digit, e.g. CH|8115 or AB|12|CD.
+  const cuts = [];
+  for (let i = 1; i < joined.length; i++) {
+    if (/[A-Z]/.test(joined[i - 1]) !== /[A-Z]/.test(joined[i])) cuts.push(i);
+  }
+  const splitAt = function (positions) {
+    let out = '', last = 0;
+    positions.forEach(function (p) { out += joined.slice(last, p) + ' '; last = p; });
+    return out + joined.slice(last);
+  };
+  const variants = [typed, joined, splitAt(cuts)];
+  if (cuts.length <= 4) cuts.forEach(function (c) { variants.push(splitAt([c])); });
+
+  const seen = {};
+  const terms = variants.filter(function (v) {
+    const k = v.toUpperCase();
+    if (!v || seen[k]) return false;
+    seen[k] = true;
+    return true;
+  }).map(function (v) { return '"' + v + '"'; });
+  return terms.length > 1 ? '{' + terms.join(' ') + '}' : terms[0];
 }
 
 /** Already-returned PDFs and invoice numbers for this part. */

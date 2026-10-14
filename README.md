@@ -62,6 +62,7 @@ Skipping step 3 means the tool keeps running the old code.
 ## Good to know
 
 - **Finding invoices** uses Gmail's own search, so it finds what typing the part number into Gmail finds.
+  Dashes, spaces and slashes don't matter: `ch8115`, `CH-8115` and `CH 8115` all find the same invoices.
   It shows the **15 newest invoices where that part has not been returned yet**, going as far back as
   needed (up to 300 emails). Invoices already used for that part are hidden behind a
   "Show … already returned" link. Change `SHOW_INVOICES` at the top of `Code.gs` for a different number.
