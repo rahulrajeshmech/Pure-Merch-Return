@@ -131,6 +131,39 @@ function recordReturn(item, part, invoice) {
   return { invoice: invoice };
 }
 
+/**
+ * Undoes a return: deletes the newest matching row from the Returns tab.
+ * Matches the exact invoice PDF first, then the same part + invoice number
+ * (for invoices that were returned under a different email).
+ */
+function undoReturn(item, part, invoice) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sh = sheet_(RETURNS);
+    if (sh.getLastRow() < 2) throw new Error('There is no return to undo.');
+    const rows = sh.getRange(2, 1, sh.getLastRow() - 1, RETURN_HEADERS.length).getValues();
+    const key = norm_(part) + '|' + item.key;
+    const byKey = function (r) { return r[COL.key - 1] === key; };
+    const byInvoice = function (r) {
+      return norm_(r[COL.part - 1]) === norm_(part) && norm_(r[COL.invoice - 1]) === norm_(invoice);
+    };
+    let found = -1;
+    [byKey, byInvoice].some(function (match) {
+      rows.forEach(function (r, i) {
+        if (match(r) && (found === -1 || r[COL.date - 1] > rows[found][COL.date - 1])) found = i;
+      });
+      return found !== -1;
+    });
+    if (found === -1) throw new Error('That return was not found. It may already have been undone.');
+    sh.deleteRow(found + 2);
+    rebuildByInvoice_();
+    return { invoice: String(rows[found][COL.invoice - 1]) };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 // ---------------------------------------------------------------------------
 // One-time setup. Runs by itself the first time the page is opened; can also be
 // run from the Apps Script editor.

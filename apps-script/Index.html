@@ -51,6 +51,8 @@
   .done .big { font-size: 64px; font-weight: 800; letter-spacing: 2px; margin: 10px 0 6px; word-break: break-all; }
   .done .sub { color: var(--muted); font-size: 18px; }
   .done button { margin-top: 30px; padding: 18px 40px; font-size: 26px; font-weight: 700; background: var(--text); color: #fff; }
+  .done button.undo { display: block; margin: 24px auto 0; padding: 12px 28px; font-size: 20px;
+                      background: none; color: var(--bad); border: 2px solid var(--bad); }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -75,6 +77,7 @@
     <div class="big" id="doneInvoice"></div>
     <div class="sub" id="doneSub"></div>
     <button id="next">NEXT PART</button>
+    <button id="undo" class="undo">UNDO — that was a mistake</button>
   </section>
 </main>
 
@@ -93,10 +96,14 @@ let state = null;
 
 call('getConfig').then(c => { $('sheetLink').href = c.sheetUrl; $('excelLink').href = c.excelUrl; });
 
-$('form').addEventListener('submit', async e => {
+$('form').addEventListener('submit', e => {
   e.preventDefault();
   const part = $('part').value.trim();
-  if (!part) return;
+  if (part) runSearch(part);
+});
+
+// `note` is shown above the results once they load (e.g. after an undo).
+async function runSearch(part, note) {
   const search = Symbol();
   state = { part, search, loaded: false, items: [], returned: [], returnedInvoices: [], show: 15,
             details: {}, sel: null, again: {}, showReturned: false };
@@ -104,13 +111,13 @@ $('form').addEventListener('submit', async e => {
   try {
     const res = await call('searchPart', part);
     if (state.search !== search) return;
-    Object.assign(state, res, { loaded: true });
+    Object.assign(state, res, { loaded: true, note });
     render();
     readAll(search);
   } catch (err) {
     showMsg('Something went wrong: ' + err.message, true);
   }
-});
+}
 
 // Read the PDFs on screen a few at a time so results fill in as they are ready.
 // If one turns out to be already returned, the next invoice takes its place and is read too.
@@ -173,7 +180,8 @@ function card(item) {
     + inv
     + (d && d.line ? '<div class="line">' + esc(d.line) + '</div>' : '')
     + (done ? '<span class="tag bad">Already returned on ' + esc(done) + '</span>'
-        + (off ? '<button class="again" data-again="' + esc(item.key) + '">had more than one? return again</button>' : '') : '')
+        + (off ? '<button class="again" data-again="' + esc(item.key) + '">had more than one? return again</button>'
+               + '<button class="again" data-undo="' + esc(item.key) + '">undo this return</button>' : '') : '')
     + (d && !d.found && !d.error ? '<span class="tag warn">Part number not seen in this PDF</span>' : '')
     + (d && d.error ? '<span class="tag warn">Could not read this PDF</span>' : '')
     + '<div><a href="https://mail.google.com/mail/u/0/#all/' + esc(item.threadId) + '" target="_blank">Open email</a></div>'
@@ -205,6 +213,7 @@ function render() {
     showMsg(list.length + (list.length === 1 ? ' invoice' : ' invoices') +
             ' where this part has not been returned. Tap one, then press RETURN.');
   }
+  if (state.note) $('msg').textContent = state.note + ' ' + $('msg').textContent;
   $('results').innerHTML = list.map(card).join('')
     + (used.length ? '<p class="msg"><button class="again" data-toggle="1">'
         + (state.showReturned ? 'Hide' : 'Show') + ' ' + used.length + ' already returned</button></p>' : '')
@@ -229,6 +238,13 @@ function updateButton() {
 $('results').addEventListener('click', e => {
   if (e.target.closest('a') || e.target.closest('input')) return;
   if (e.target.dataset.toggle) { state.showReturned = !state.showReturned; render(); return; }
+  const undo = e.target.dataset.undo;
+  if (undo) {
+    const item = state.items.concat(state.returned).find(i => i.key === undo);
+    const d = state.details[undo];
+    undoReturn(item, state.part, item.returnedInvoice || (d && d.invoice) || '');
+    return;
+  }
   const again = e.target.dataset.again;
   if (again) {
     if (confirm('Only do this if that invoice had MORE THAN ONE of this part.\n\nReturn another one from it?')) {
@@ -256,6 +272,7 @@ $('returnBtn').addEventListener('click', async () => {
   $('returnBtn').textContent = 'Saving…';
   try {
     const res = await call('recordReturn', item, state.part, invoice);
+    state.last = { item, invoice: res.invoice };
     $('doneInvoice').textContent = res.invoice;
     $('doneSub').textContent = 'Part ' + state.part.toUpperCase() + ' · ' + item.supplier;
     $('searchView').hidden = true; $('bar').hidden = true; $('doneView').hidden = false;
@@ -274,6 +291,25 @@ $('next').addEventListener('click', () => {
   updateButton();
   $('part').focus();
 });
+
+$('undo').addEventListener('click', () => {
+  if (state && state.last) undoReturn(state.last.item, state.part, state.last.invoice);
+});
+
+async function undoReturn(item, part, invoice) {
+  if (!confirm('Undo this return?\n\nPart: ' + part.toUpperCase() + '\nInvoice: ' + invoice +
+               '\n\nIf you already wrote the invoice number on the part, cross it out.')) return;
+  try {
+    await call('undoReturn', item, part, invoice);
+  } catch (err) {
+    alert('Could not undo: ' + err.message);
+    return;
+  }
+  // Back to the invoice list for the same part, so the right one can be picked.
+  $('doneView').hidden = true; $('searchView').hidden = false; $('bar').hidden = false;
+  $('part').value = part;
+  runSearch(part, '✔ Return undone.');
+}
 
 function showMsg(text, err) { $('msg').textContent = text; $('msg').className = 'msg' + (err ? ' err' : ''); }
 </script>

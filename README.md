@@ -48,10 +48,16 @@ Do this signed in to the Google account that **receives the supplier invoices**.
 7. On the returns PC, open Chrome **signed in to that same Google account**, open the URL, and
    create a desktop shortcut (Chrome menu ⋮ → **Cast, save and share → Create shortcut**, name it **Returns**).
 
-### Changing the code later
+### Updating to a new version of the code
 
-Paste the new code, save, then **Deploy → Manage deployments → ✎ edit → Version: New version → Deploy**.
-The URL stays the same.
+1. Open the Google Sheet → **Extensions → Apps Script**.
+2. For each changed file (`Code.gs`, `Index.html`): click it on the left, select all (**Ctrl + A**),
+   delete, paste the new version, and press **Ctrl + S**.
+3. Click **Deploy → Manage deployments**. Click the **pencil ✎** on the right, set **Version** to
+   **New version**, and click **Deploy**.
+4. Reload the tool in Chrome. The URL and desktop shortcut stay the same.
+
+Skipping step 3 means the tool keeps running the old code.
 
 ## Good to know
 
@@ -66,6 +72,11 @@ The URL stays the same.
   be corrected; if no number was found, it must be typed in.
 - Each card shows the line from the PDF that contains the part, and warns if the part could not be
   seen in that PDF.
+- **Undo a mistake:**
+  - Straight after saving: press **UNDO — that was a mistake** on the "Write this on the part" screen.
+  - Later: search the part, click **Show … already returned**, and click **undo this return** on that invoice.
+  - Either way the row is removed from the spreadsheet and the invoice is free to use again.
+    Cross out the invoice number if it was already written on the part.
 - If one invoice had more than one of the same part, open **Show … already returned** and use the small
   **"return again"** link on that invoice.
 - Works with a personal Gmail account. Work (Google Workspace) accounts may need the IT admin to allow Apps Script.
