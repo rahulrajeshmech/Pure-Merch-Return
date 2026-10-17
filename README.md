@@ -53,7 +53,7 @@ and **🚚 Driver**. Scheduling has two parts, chosen with the buttons under the
 
 ## How it works
 
-![How the parts returns tool works](diagrams/parts-returns-architecture.svg)
+![How PureTech works: Returns and Scheduling](diagrams/parts-returns-architecture.svg)
 
 For a version you can zoom and click, download
 [`diagrams/parts-returns-architecture.html`](diagrams/parts-returns-architecture.html) and open it in Chrome.
