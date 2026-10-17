@@ -2,8 +2,8 @@
 
 One Google web app and one Google Sheet for the shop, with two sections:
 
-- **📦 Returns**: find which supplier invoice a part was bought on and log the return.
-- **👥 Scheduling**: the weekly staff calendar, with a check that enough people are in each day.
+- **Returns**: find which supplier invoice a part was bought on and log the return.
+- **Scheduling**: the weekly staff calendar, with a check that enough people are in each day.
 
 The buttons at the top of the page switch between them. The app opens on **Returns**.
 
@@ -26,29 +26,30 @@ twice against the same invoice. Other parts on that invoice are not affected.
 
 There are three kinds of worker, each with its own picture and colour: **👷 Full time**, **⏰ Part time**
 and **🚚 Driver**. Scheduling has two parts, chosen with the buttons under the PureTech bar.
+Apart from these three pictures, the app uses plain words, no emoji.
 
-### 📅 Calendar (for looking)
+### Calendar (for looking)
 
 - One card per day, Monday to Sunday. Use **◀ ▶** to change week and **Today** to come back.
 - Each day shows a badge per kind of worker, e.g. `🚚 1/2 ✗`: 1 driver working, 2 needed, so the
   day is short. A short day has a red border, and the red box at the top lists every short day.
-- People working are shown as coloured name tags. Changes from the usual week stand out:
+- People working are shown as coloured name tags. Changes from the master schedule stand out:
   a **greyed, crossed-out** tag means a day off; a **dashed** tag marked **+ COVER** means extra cover.
 - A day with no minimum and nobody working shows **Closed**.
 - Nothing can be changed here. A short day has a **Fix this day →** link that opens Make changes.
 
-### ✏️ Make changes (for changing)
+### Make changes (for changing)
 
-- **🏖️ Day off**: pick the day, tap the person, optionally pick why (Sick, Holiday, Other), **Save day off**.
+- **Day off**: pick the day, tap the person, optionally pick why (Sick, Holiday, Other), **Save day off**.
   Before saving it shows whether the day will be short.
-- **➕ Extra cover**: pick the day, tap someone who isn't working that day, **Save extra cover**.
+- **Extra cover**: pick the day, tap someone who isn't working that day, **Save extra cover**.
   People of a kind that is short that day are marked **NEEDED**.
-- **🔁 Usual week**: the week that repeats every week.
+- **Master scheduling**: the master schedule, which repeats every week.
   - **Your team**: add people, set their kind (👷 / ⏰ / 🚚), mark someone **Away for a while** (hidden
-    from the calendar without deleting them), or remove them.
-  - **Who usually works each day**: use **− / +** to set the minimum of each kind per day, **+ Add person**
+    from the calendar without deleting them), or **Remove** them.
+  - **Who works each day**: use **− / +** to set the minimum of each kind per day, **+ Add person**
     to put someone on that day, and **×** to take them off. **Same people as Monday** copies Monday.
-  - Press **Save usual week**. Days off and extra cover already entered stay as they are.
+  - Press **Save master schedule**. Days off and extra cover already entered stay as they are.
 - Under the buttons, **Changes for …** lists that week's days off and extra cover, each with **Undo**.
 
 ## How it works
@@ -77,7 +78,7 @@ The sheet is called **PureTech**. Its tabs are coloured by section: green for Re
   email date, email subject, PDF file name and a link to the email. Newest first, with filters.
 - **By Invoice**: grouped by supplier and invoice, listing each part returned against it.
 - **Schedule · Staff**: name, kind of worker, and whether they are on the schedule (tick box).
-- **Schedule · Base Week**: the usual week, one row per person with a tick box per weekday.
+- **Schedule · Base Week**: the master schedule, one row per person with a tick box per weekday.
 - **Schedule · Needed**: the minimum of each kind of worker per weekday.
 - **Schedule · Changes**: days off and extra cover for particular dates.
 - The Schedule tabs can also be edited by hand; the app shows the change when it is reloaded.
@@ -128,7 +129,7 @@ Use the same Google Sheet and Apps Script project, so the returns already logged
    Press **Ctrl + S**.
 4. **Deploy → Manage deployments → pencil ✎ → Version: New version → Deploy**.
 5. Reload the tool. The first time it renames the sheet to **PureTech** and adds the Schedule tabs.
-6. Open **👥 Scheduling → ✏️ Make changes → 🔁 Usual week** to add the team.
+6. Open **Scheduling → Make changes → Master scheduling** to add the team.
 
 ### Updating to a new version of the code
 

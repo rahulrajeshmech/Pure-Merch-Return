@@ -2,7 +2,7 @@
  * PureTech — Scheduling section
  *
  * A weekly staff calendar. Three kinds of worker (Full time, Part time, Driver),
- * a minimum number of each per weekday, a usual week that repeats, and
+ * a minimum number of each per weekday, a master schedule that repeats, and
  * week-specific changes on top of it (days off and extra cover). The page shows
  * each day with whether the minimum for every kind of worker is met.
  *
@@ -61,7 +61,7 @@ function addExtra(dateIso, name) {
   });
 }
 
-/** Removes a day off or extra cover, putting that day back to the usual week. */
+/** Removes a day off or extra cover, putting that day back to the master schedule. */
 function removeChange(dateIso, name) {
   return changeDay_(dateIso, name, function (day, person, rows) {
     if (!rows.remove(OFF) && !rows.remove(EXTRA)) throw new Error('That change was not found. It may already have been undone.');
@@ -69,12 +69,12 @@ function removeChange(dateIso, name) {
 }
 
 /**
- * Saves the usual week from the page: the staff list, which weekdays each person
+ * Saves the master schedule from the page: the staff list, which weekdays each person
  * normally works, and the minimum of each kind of worker per weekday.
  * data = { staff: [{ name, was, type, active, days: [7 booleans] }], needed: { full: [7 numbers], … } }
  * `was` is the name the person had before, so renaming someone keeps their days off.
  */
-function saveUsualWeek(data) {
+function saveMasterSchedule(data) {
   const staff = (data && data.staff || []).map(function (s) {
     return {
       name: String(s.name || '').trim().replace(/\s+/g, ' '),
@@ -162,7 +162,7 @@ function buildWeek_(sched, monday) {
       people.splice(people.indexOf(p), 1);
       off.push({ name: s.name, type: s.type, reason: c.reason, wasExtra: p.status === 'extra' });
     });
-    // A day off from extra cover just cancels the cover; it is not a change from the usual week.
+    // A day off from extra cover just cancels the cover; it is not a change from the master schedule.
     const shownOff = off.filter(function (o) { return !o.wasExtra; }).map(function (o) {
       return { name: o.name, type: o.type, reason: o.reason };
     });

@@ -51,7 +51,7 @@
   </section>
 
   <section id="doneView" class="done" hidden>
-    <p>✔ Saved. Write this on the part:</p>
+    <p>✓ Saved. Write this on the part:</p>
     <div class="big" id="doneInvoice"></div>
     <div class="sub" id="doneSub"></div>
     <button id="next">NEXT PART</button>
@@ -281,7 +281,7 @@ async function undoReturn(item, part, invoice) {
   // Back to the invoice list for the same part, so the right one can be picked.
   $('doneView').hidden = true; $('searchView').hidden = false; $('bar').hidden = false;
   $('part').value = part;
-  runSearch(part, '✔ Return undone.');
+  runSearch(part, '✓ Return undone.');
 }
 
 function showMsg(text, err) { $('msg').textContent = text; $('msg').className = 'msg' + (err ? ' err' : ''); }

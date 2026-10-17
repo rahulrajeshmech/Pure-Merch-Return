@@ -6,12 +6,13 @@ Google Sheet (also named PureTech) with two sections:
 - **Returns**: the user types a part number, the tool searches the shared Gmail for supplier invoice
   PDFs containing it, they pick one, press RETURN, and the return is logged in the Sheet.
 - **Scheduling**: a weekly staff calendar (Full time 👷 / Part time ⏰ / Driver 🚚) with a minimum of
-  each kind per weekday, a repeating usual week, and dated days off / extra cover on top.
+  each kind per weekday, a repeating master schedule, and dated days off / extra cover on top.
 
 Everyone uses one shared PC and Google account; there are no logins or edit protection. The people
 using it are not technical: keep the UI to big text, few choices, plain words. Never add steps or
 settings to their screen without asking. The schedule must look like a calendar (day cards, coloured
-emoji tags), never like a spreadsheet grid.
+emoji tags), never like a spreadsheet grid. The only emoji anywhere in the app are the three worker
+types; everything else is plain words (plain ✓ ✗ ◀ ▶ → symbols are fine).
 
 ## Files
 
@@ -24,7 +25,7 @@ Apps Script `.gs` files share one global scope. Script and HTML files must not s
   Drive OCR (`readInvoice`, `pdfText_`, `guessInvoice_`), saving/undo (`recordReturn`, `undoReturn`),
   tabs (`setupReturns_`, `rebuildByInvoice_`).
 - `apps-script/Schedule.gs` — Scheduling server: `getWeek`, `setDayOff`, `addExtra`, `removeChange`,
-  `saveUsualWeek`; pure `buildWeek_` (no Google calls) works out each day; `setupSchedule_`.
+  `saveMasterSchedule`; pure `buildWeek_` (no Google calls) works out each day; `setupSchedule_`.
 - `apps-script/Index.html` — page shell: PureTech bar, section buttons, shared CSS and the `$`, `esc`,
   `call` helpers; pastes in the two section files with `<?!= include_('…') ?>`.
 - `apps-script/ReturnsPage.html` — Returns section (CSS scoped under `.returns`).
@@ -42,8 +43,8 @@ Apps Script `.gs` files share one global scope. Script and HTML files must not s
 - Sheet tabs: `Returns` (one row per return, newest first), `By Invoice` (rebuilt after every change),
   `_pdf_cache` (hidden OCR cache); then `Schedule · Staff`, `Schedule · Base Week`, `Schedule · Needed`,
   `Schedule · Changes`. `doGet` runs `setup` if any of these is missing.
-- Scheduling: people are matched by `norm_(name)`. A day's workers = usual week + Extra − Off (a day
-  off wins). Dates are `yyyy-mm-dd` strings worked out in UTC. Renaming someone in the usual week
+- Scheduling: people are matched by `norm_(name)`. A day's workers = master schedule + Extra − Off (a day
+  off wins). Dates are `yyyy-mm-dd` strings worked out in UTC. Renaming someone in Master scheduling
   renames their rows in Changes. Calendar is view-only; all input is in Make changes.
 
 ## Testing locally (no Google account needed)

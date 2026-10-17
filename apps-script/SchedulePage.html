@@ -104,7 +104,7 @@
   .sc-change button { margin-left: auto; background: none; color: var(--bad); border: 2px solid var(--bad);
                       padding: 4px 14px; font-size: 16px; font-weight: 700; }
 
-  /* Usual week */
+  /* Master scheduling */
   .sc-team { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
   .sc-person { background: var(--card); border: 2px solid var(--line); border-left: 8px solid var(--tc, var(--line));
                border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
@@ -137,8 +137,8 @@
 
 <main id="schedulingSection" class="scheduling" hidden>
   <nav class="sc-views">
-    <button data-view="calendar">📅 Calendar</button>
-    <button data-view="changes">✏️ Make changes</button>
+    <button data-view="calendar">Calendar</button>
+    <button data-view="changes">Make changes</button>
   </nav>
   <div class="sc-msg" id="scMsg"></div>
 
@@ -163,9 +163,9 @@
 
   <section id="scChanges" hidden>
     <div class="sc-choices" id="scChoices">
-      <button data-mode="off"><span class="big">🏖️ Day off</span><span class="small">Someone is not coming in</span></button>
-      <button data-mode="extra"><span class="big">➕ Extra cover</span><span class="small">Bring someone in on a day they don't usually work</span></button>
-      <button data-mode="usual"><span class="big">🔁 Usual week</span><span class="small">Your team, who works which days, and the minimum each day</span></button>
+      <button data-mode="off"><span class="big">Day off</span><span class="small">Someone is not coming in</span></button>
+      <button data-mode="extra"><span class="big">Extra cover</span><span class="small">Bring someone in on a day they don't usually work</span></button>
+      <button data-mode="master"><span class="big">Master scheduling</span><span class="small">Add or remove staff, who works which days, and the minimum each day</span></button>
     </div>
     <div id="scForm"></div>
     <div id="scList"></div>
@@ -181,7 +181,7 @@ const Scheduling = (() => {
     { key: 'driver', label: 'Driver', many: 'Drivers', emoji: '🚚' },
   ];
   const TYPE = Object.fromEntries(TYPES.map(t => [t.key, t]));
-  const REASONS = [['🤒', 'Sick'], ['🌴', 'Holiday'], ['📝', 'Other']];
+  const REASONS = ['Sick', 'Holiday', 'Other'];
   const DAY = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const DAY3 = DAY.map(d => d.slice(0, 3));
 
@@ -210,9 +210,9 @@ const Scheduling = (() => {
     weeks: {},                     // getWeek results by Monday
     flash: null,                   // day card to highlight after a change
     note: null,                    // message to show once the calendar has loaded
-    mode: null,                    // Make changes: 'off' | 'extra' | 'usual'
+    mode: null,                    // Make changes: 'off' | 'extra' | 'master'
     form: null,                    // { monday, date, name, reason }
-    draft: null,                   // usual week being edited
+    draft: null,                   // master schedule being edited
   };
   let nextId = 1;
 
@@ -236,7 +236,7 @@ const Scheduling = (() => {
   }
 
   // ------------------------------------------------------------------------
-  // 📅 Calendar (view only)
+  // Calendar (view only)
 
   async function loadCalendar() {
     const monday = S.monday;
@@ -257,7 +257,7 @@ const Scheduling = (() => {
     if (!w) return;
     if (!w.staff.some(s => s.active)) {
       $('scSummary').className = 'sc-summary info';
-      $('scSummary').innerHTML = 'No one is on the schedule yet. Press <b>✏️ Make changes</b>, then <b>🔁 Usual week</b>, to add your team.';
+      $('scSummary').innerHTML = 'No one is on the schedule yet. Press <b>Make changes</b>, then <b>Master scheduling</b>, to add your team.';
       $('scWeek').innerHTML = '';
       return;
     }
@@ -307,7 +307,7 @@ const Scheduling = (() => {
     return '<div class="' + cls + '" id="scDay-' + d.date + '">' + head
       + '<div class="sc-mins">' + mins + '</div>'
       + '<div class="sc-chips">' + (people.length ? people.join('') : '<span class="sc-empty">No one working</span>') + '</div>'
-      + (d.changeCount ? '<div class="sc-note">' + plural(d.changeCount, 'change') + ' from the usual week</div>' : '')
+      + (d.changeCount ? '<div class="sc-note">' + plural(d.changeCount, 'change') + ' from the master schedule</div>' : '')
       + (d.ok ? '' : '<button class="sc-fix" data-fix="' + d.date + '">Fix this day →</button>')
       + '</div>';
   }
@@ -329,7 +329,7 @@ const Scheduling = (() => {
   });
 
   // ------------------------------------------------------------------------
-  // ✏️ Make changes
+  // Make changes
 
   async function loadChanges() {
     if (!S.form) S.form = { monday: S.monday, date: null, name: null, reason: '' };
@@ -341,13 +341,13 @@ const Scheduling = (() => {
     } catch (err) { return fail(err); }
     if (S.view !== 'changes' || S.form.monday !== monday) return;
     msg('');
-    if (S.mode === 'usual' && !S.draft) startUsual();
-    if (S.mode !== 'usual') renderChanges();
+    if (S.mode === 'master' && !S.draft) startMaster();
+    if (S.mode !== 'master') renderChanges();
   }
 
   function renderChanges() {
     document.querySelectorAll('#scChoices button').forEach(b => b.classList.toggle('on', b.dataset.mode === S.mode));
-    if (S.mode === 'usual') { renderUsual(); $('scList').innerHTML = ''; return; }
+    if (S.mode === 'master') { renderMaster(); $('scList').innerHTML = ''; return; }
     if (!S.mode) $('scForm').innerHTML = '<p class="sc-hint">Tap what you want to change.</p>';
     else renderForm();
     renderList();
@@ -359,8 +359,8 @@ const Scheduling = (() => {
     S.mode = b.dataset.mode;
     S.form = { monday: S.form.monday, date: null, name: null, reason: '' };
     msg('');
-    if (S.mode === 'usual') {
-      if (S.weeks[S.form.monday]) startUsual(); else loadChanges();
+    if (S.mode === 'master') {
+      if (S.weeks[S.form.monday]) startMaster(); else loadChanges();
     } else renderChanges();
   });
 
@@ -396,7 +396,7 @@ const Scheduling = (() => {
       const person = f.name && people.find(p => p.name === f.name);
       if (person && isOff && person.status !== 'extra') {
         html += '<h3>3. Why? <span class="sc-hint">(you can skip this)</span></h3><div class="sc-reasons">'
-          + REASONS.map(r => '<button class="' + (f.reason === r[1] ? 'sel' : '') + '" data-reason="' + r[1] + '">' + r[0] + ' ' + r[1] + '</button>').join('')
+          + REASONS.map(r => '<button class="' + (f.reason === r ? 'sel' : '') + '" data-reason="' + r + '">' + r + '</button>').join('')
           + '</div>';
       }
       if (person) {
@@ -437,7 +437,7 @@ const Scheduling = (() => {
     delete S.weeks[f.monday];
     S.monday = f.monday;
     S.flash = f.date;
-    S.note = '✔ Saved: ' + f.name + (S.mode === 'off' ? ' is off on ' : ' is coming in on ') + longDay(f.date) + '.';
+    S.note = '✓ Saved: ' + f.name + (S.mode === 'off' ? ' is off on ' : ' is coming in on ') + longDay(f.date) + '.';
     S.mode = null;
     S.form = null;
     showView('calendar');
@@ -448,16 +448,16 @@ const Scheduling = (() => {
     if (!w) return;
     const items = [];
     w.days.forEach(d => {
-      d.off.forEach(o => items.push({ d, p: o, icon: '🏖️', what: 'Off' + (o.reason ? ' · ' + o.reason : ''), undo: 'day off' }));
-      d.people.filter(p => p.status === 'extra').forEach(p => items.push({ d, p, icon: '➕', what: 'Extra cover', undo: 'extra cover' }));
+      d.off.forEach(o => items.push({ d, p: o, what: 'Day off' + (o.reason ? ' · ' + o.reason : ''), undo: 'day off' }));
+      d.people.filter(p => p.status === 'extra').forEach(p => items.push({ d, p, what: 'Extra cover', undo: 'extra cover' }));
     });
     $('scList').innerHTML = '<h3>Changes for ' + esc(weekLabel(w.monday)) + '</h3>'
       + (items.length ? '<div class="sc-list">' + items.map(x =>
-        '<div class="sc-change"><span class="when">' + x.icon + ' ' + esc(DAY3[dayIndex(x.d.date)] + ' ' + shortDate(x.d.date)) + '</span>'
+        '<div class="sc-change"><span class="when">' + esc(DAY3[dayIndex(x.d.date)] + ' ' + shortDate(x.d.date)) + '</span>'
         + '<span class="sc-chip t-' + x.p.type + '">' + TYPE[x.p.type].emoji + ' ' + esc(x.p.name) + '</span>'
         + '<span>' + esc(x.what) + '</span>'
         + '<button data-undo-date="' + x.d.date + '" data-undo-name="' + esc(x.p.name) + '" data-undo-what="' + x.undo + '">Undo</button></div>').join('') + '</div>'
-        : '<p class="sc-hint">No changes this week. It is the usual week.</p>');
+        : '<p class="sc-hint">No changes this week. It follows the master schedule.</p>');
   }
 
   $('scList').addEventListener('click', async e => {
@@ -470,14 +470,14 @@ const Scheduling = (() => {
       await call('removeChange', date, name);
       await week(S.form.monday, true);
     } catch (err) { b.disabled = false; return fail(err); }
-    msg('✔ Undone. ' + longDay(date) + ' is back to the usual week for ' + name + '.');
+    msg('✓ Undone. ' + longDay(date) + ' is back to the master schedule for ' + name + '.');
     renderChanges();
   });
 
   // ------------------------------------------------------------------------
-  // 🔁 Usual week: the team, who works which weekdays, and the minimum per day
+  // Master scheduling: the team, who works which weekdays, and the minimum per day
 
-  function startUsual() {
+  function startMaster() {
     const w = S.weeks[S.form.monday];
     S.draft = {
       staff: w.staff.map(s => ({ id: nextId++, name: s.name, was: s.name, type: s.type, active: s.active, days: s.days.slice() })),
@@ -488,15 +488,15 @@ const Scheduling = (() => {
     renderChanges();
   }
 
-  /** Asks before throwing away unsaved changes to the usual week. Returns false to stay. */
+  /** Asks before throwing away unsaved changes to the master schedule. Returns false to stay. */
   function leaveDraft() {
-    if (S.draft && S.draft.dirty && !confirm('Leave without saving the usual week?')) return false;
+    if (S.draft && S.draft.dirty && !confirm('Leave without saving the master schedule?')) return false;
     S.draft = null;
-    if (S.mode === 'usual') S.mode = null;
+    if (S.mode === 'master') S.mode = null;
     return true;
   }
 
-  function renderUsual() {
+  function renderMaster() {
     const dr = S.draft;
     if (!dr) return;
     const on = i => dr.staff.filter(s => s.active && TYPE[s.type] && s.days[i]);
@@ -504,8 +504,8 @@ const Scheduling = (() => {
       + '<input data-id="' + s.id + '" value="' + esc(s.name) + '" placeholder="Name" autocomplete="off">'
       + '<div class="sc-types">' + TYPES.map(t => '<button class="t-' + t.key + (s.type === t.key ? ' on' : '') + '" data-act="type" data-id="' + s.id + '" data-type="' + t.key + '">'
         + t.emoji + ' ' + t.label + '</button>').join('') + '</div>'
-      + '<div class="sc-prow"><button data-act="pause" data-id="' + s.id + '">' + (s.active ? '⏸ Away for a while' : '▶ Back on the schedule') + '</button>'
-      + '<button data-act="remove" data-id="' + s.id + '">✕ Remove</button></div></div>';
+      + '<div class="sc-prow"><button data-act="pause" data-id="' + s.id + '">' + (s.active ? 'Away for a while' : 'Back on the schedule') + '</button>'
+      + '<button data-act="remove" data-id="' + s.id + '">Remove</button></div></div>';
 
     const day = (name, i) => {
       const people = on(i);
@@ -534,38 +534,38 @@ const Scheduling = (() => {
         + '</div>';
     };
 
-    $('scForm').innerHTML = '<p class="sc-hint">This week repeats every week. Days off and extra cover go on top of it.</p>'
-      + '<h3>👥 Your team</h3><div class="sc-team">' + dr.staff.map(person).join('')
+    $('scForm').innerHTML = '<p class="sc-hint">The master schedule repeats every week. Days off and extra cover go on top of it.</p>'
+      + '<h3>Your team</h3><div class="sc-team">' + dr.staff.map(person).join('')
       + '<button class="sc-newperson" data-act="new">+ Add person</button></div>'
-      + '<h3>📅 Who usually works each day</h3><div class="sc-week">' + DAY.map(day).join('') + '</div>'
-      + '<div class="sc-actions"><button class="sc-save" data-act="saveusual">Save usual week</button>'
-      + '<button class="sc-cancel" data-act="cancelusual">Cancel</button></div>';
+      + '<h3>Who works each day</h3><div class="sc-week">' + DAY.map(day).join('') + '</div>'
+      + '<div class="sc-actions"><button class="sc-save" data-act="savemaster">Save master schedule</button>'
+      + '<button class="sc-cancel" data-act="cancelmaster">Cancel</button></div>';
   }
 
-  async function saveUsual() {
+  async function saveMaster() {
     const dr = S.draft;
     const unnamed = dr.staff.some(s => !s.name.trim());
     const untyped = dr.staff.find(s => s.name.trim() && !TYPE[s.type]);
-    if (unnamed) return msg('Every person needs a name. Type it in, or press ✕ Remove.', true);
-    if (untyped) return msg('Pick 👷 Full time, ⏰ Part time or 🚚 Driver for ' + untyped.name + '.', true);
+    if (unnamed) return msg('Every person needs a name. Type it in, or press Remove.', true);
+    if (untyped) return msg('Pick Full time, Part time or Driver for ' + untyped.name + '.', true);
     const btn = document.querySelector('#scForm .sc-save');
     btn.disabled = true;
     btn.textContent = 'Saving…';
     try {
-      await call('saveUsualWeek', {
+      await call('saveMasterSchedule', {
         staff: dr.staff.map(s => ({ name: s.name.trim(), was: s.was, type: s.type, active: s.active, days: s.days })),
         needed: dr.needed,
       });
     } catch (err) {
       btn.disabled = false;
-      btn.textContent = 'Save usual week';
+      btn.textContent = 'Save master schedule';
       return fail(err);
     }
     S.weeks = {};
     S.draft = null;
     S.mode = null;
     S.form = null;
-    S.note = '✔ Usual week saved.';
+    S.note = '✓ Master schedule saved.';
     showView('calendar');
   }
 
@@ -594,14 +594,14 @@ const Scheduling = (() => {
     if (b.dataset.reason) { f.reason = f.reason === b.dataset.reason ? '' : b.dataset.reason; return renderForm(); }
     if (b.dataset.act === 'save') return saveChange();
 
-    // Usual week
+    // Master scheduling
     const dr = S.draft;
     if (!dr) return;
     const act = b.dataset.act;
     const s = dr.staff.find(x => x.id === Number(b.dataset.id));
     const i = Number(b.dataset.day);
-    if (act === 'saveusual') return saveUsual();
-    if (act === 'cancelusual') { if (leaveDraft()) renderChanges(); return; }
+    if (act === 'savemaster') return saveMaster();
+    if (act === 'cancelmaster') { if (leaveDraft()) renderChanges(); return; }
     if (act === 'remove' && !confirm('Remove ' + (s.name || 'this person') + ' from the team?')) return;
     if (act === 'type') s.type = b.dataset.type;
     else if (act === 'pause') s.active = !s.active;
@@ -611,13 +611,13 @@ const Scheduling = (() => {
       const n = dr.needed[b.dataset.type];
       n[i] = Math.max(0, Math.min(99, n[i] + (act === 'inc' ? 1 : -1)));
     }
-    else if (act === 'adding') { dr.adding = i; return renderUsual(); }
+    else if (act === 'adding') { dr.adding = i; return renderMaster(); }
     else if (act === 'set') { s.days[i] = true; dr.adding = -1; }
     else if (act === 'unset') s.days[i] = false;
     else if (act === 'copy') dr.staff.forEach(x => { x.days[i] = x.days[0]; });
     else return;
     dr.dirty = true;
-    renderUsual();
+    renderMaster();
     if (act === 'new') { const inputs = document.querySelectorAll('#scForm .sc-person input'); inputs[inputs.length - 1].focus(); }
   });
 

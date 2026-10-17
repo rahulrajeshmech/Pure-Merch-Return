@@ -144,7 +144,7 @@
         dateText: Utilities.formatDate(date, '', 'd MMM yyyy') };
     }
     return {
-      getConfig, recordReturn, undoReturn, getWeek, setDayOff, addExtra, removeChange, saveUsualWeek,
+      getConfig, recordReturn, undoReturn, getWeek, setDayOff, addExtra, removeChange, saveMasterSchedule,
       searchPart(part) {
         part = String(part || '').trim();
         const out = { items: [], returned: [], returnedInvoices: [], show: SHOW_INVOICES };
