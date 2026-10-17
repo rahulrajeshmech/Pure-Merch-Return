@@ -58,6 +58,17 @@ and **🚚 Driver**. Scheduling has two parts, chosen with the buttons under the
 For a version you can zoom and click, download
 [`diagrams/parts-returns-architecture.html`](diagrams/parts-returns-architecture.html) and open it in Chrome.
 
+## Preview on this computer (no Google account)
+
+To see the page and try changes before copying anything into Google:
+
+1. In the project folder run `node tools/preview.mjs --open`. It builds
+   `preview/PureTech-preview.html` and opens it in the browser.
+2. It uses demo data: a sample team for Scheduling, and demo invoices for Returns (try part
+   numbers `CH8115` or `BP4471`). Nothing reaches Gmail or the Google Sheet.
+3. What you do in the preview is remembered in that browser. **Reset demo data** (top right) starts again.
+4. After changing any file in `apps-script/`, run step 1 again and reload the page.
+
 ## The spreadsheet
 
 The sheet is called **PureTech**. Its tabs are coloured by section: green for Returns, blue for Scheduling.

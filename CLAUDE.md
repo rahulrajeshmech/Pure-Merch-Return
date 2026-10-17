@@ -58,6 +58,14 @@ Apps Script `.gs` files share one global scope. Script and HTML files must not s
   Playwright. Bridging the fake to the vm context with `page.exposeFunction` tests page and server together.
 - `node --check` on `.js` copies of the `.gs` files for syntax.
 
+## Local preview for the owner
+
+`node tools/preview.mjs [--open]` builds `preview/PureTech-preview.html` (git-ignored) from the real
+`apps-script/` files. `tools/preview-fake.js` stands in for Google: the real `.gs` code runs in its
+own scope on pretend sheets kept in localStorage; Gmail/Drive OCR are replaced by `DEMO_EMAILS`
+(the real `guessInvoice_`/`findLine_`/`returnedFor_` still run). Rebuild after every change so the
+owner can reload and look. If the server code starts using a new Google service, add it to the fake.
+
 ## Getting changes into Google (manual, by the owner)
 
 This repo is NOT linked to any Google account. Do not set up clasp, Google sign-in or any other
