@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 1460 912" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-node-ui="" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" data-reader-primary-text="14" style="--flow-cycle: 6.145s; width: 1460px; height: 912px; min-width: 0px;" width="1460" height="912" xmlns="http://www.w3.org/2000/svg"><style>
+<svg viewBox="0 0 1480 912" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-node-ui="" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" data-reader-primary-text="14" style="--flow-cycle: 6.145s; width: 1480px; height: 912px; min-width: 0px;" width="1480" height="912" xmlns="http://www.w3.org/2000/svg"><style>
 /*
 JetBrains Mono variable WOFF2 subsets from Google Fonts service revision v24.
 These fixed bytes are shared by the viewer and its SVG/raster exports.
@@ -481,13 +481,13 @@ svg[data-preset="editorial"] { --flow-halo-peak: 0.07; --flow-glow-peak: 0.28; -
 @keyframes archify-relay-comet-7 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
   1.953% { opacity: var(--flow-peak, 0.9); }
-  14.239% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  16.842%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  13.657% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  16.261%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-7 { 
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  14.239% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  28.885%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  13.657% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  28.304%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-8 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
@@ -591,13 +591,13 @@ svg[data-preset="editorial"] { --flow-halo-peak: 0.07; --flow-glow-peak: 0.28; -
 @keyframes archify-relay-comet-17 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
   1.953% { opacity: var(--flow-peak, 0.9); }
-  19.761% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
-  22.365%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
+  19.18% { stroke-dashoffset: var(--flow-shift, 0px); opacity: var(--flow-peak, 0.9); }
+  21.783%, 100% { stroke-dashoffset: var(--flow-shift, 0px); opacity: 0; }
 }
 @keyframes archify-relay-wake-17 { 
   0% { stroke-dashoffset: var(--flow-len, 0px); opacity: var(--flow-peak, 0.3); animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
-  19.761% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
-  34.407%, 100% { stroke-dashoffset: 0px; opacity: 0; }
+  19.18% { stroke-dashoffset: 0px; opacity: var(--flow-peak, 0.3); }
+  33.826%, 100% { stroke-dashoffset: 0px; opacity: 0; }
 }
 @keyframes archify-relay-comet-18 { 
   0% { stroke-dashoffset: calc(var(--flow-len, 0px) + var(--flow-shift, 0px)); opacity: 0; animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1); }
@@ -664,9 +664,9 @@ svg[data-preset="editorial"] { --flow-halo-peak: 0.07; --flow-glow-peak: 0.28; -
 }
 @keyframes archify-relay-node-5 { 
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
-  38.858% { filter: var(--ambient-node-base-filter, none); }
-  40.81%, 45.692% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
-  58.386% { filter: var(--ambient-node-base-filter, none); }
+  38.276% { filter: var(--ambient-node-base-filter, none); }
+  40.229%, 45.111% { filter: var(--ambient-node-base-filter,) drop-shadow(0 0 10px var(--arrow-emphasis)); }
+  57.805% { filter: var(--ambient-node-base-filter, none); }
 }
 @keyframes archify-relay-node-6 { 
   0%, 100% { filter: var(--ambient-node-base-filter, none); }
@@ -764,7 +764,7 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
 svg[data-theme="light"] { --bg: #f4f5f7; --grid: #e9edf2; --canvas-dot: #e2e7ec; --text: #111827; --text-muted: #5b6474; --text-dim: #9aa3b2; --text-faint: #6b7280; --panel: #ffffff; --panel-border: #e5e7eb; --lane-fill: rgba(248, 250, 252, 0.65); --lane-stroke: #cbd5e1; --arrow: #64748b; --arrow-emphasis: #059669; --mask: #ffffff; --frontend-fill: rgba(34, 211, 238, 0.15); --frontend-stroke: #0891b2; --backend-fill: rgba(52, 211, 153, 0.18); --backend-stroke: #059669; --database-fill: rgba(167, 139, 250, 0.2); --database-stroke: #7c3aed; --cloud-fill: rgba(251, 191, 36, 0.18); --cloud-stroke: #d97706; --security-fill: rgba(251, 113, 133, 0.15); --security-stroke: #e11d48; --messagebus-fill: rgba(251, 146, 60, 0.15); --messagebus-stroke: #ea580c; --external-fill: rgba(148, 163, 184, 0.18); --external-stroke: #64748b; --toolbar-bg: rgba(255, 255, 255, 0.92); --toolbar-border: #cbd5e1; --toolbar-text: #334155; --toolbar-hover: #ffffff; --toolbar-menu-bg: #ffffff; --flow-cycle: ; --flow-halo-peak: ; --flow-glow-peak: ; --flow-tail-peak: ; --flow-head-peak: ; --flow-wake-peak: ; --flow-ripple-peak: ; --flow-peak: ; }
 svg[data-theme="dark"] { --bg: #020617; --grid: #1e293b; --canvas-dot: rgba(148, 163, 184, 0.16); --text: #ffffff; --text-muted: #94a3b8; --text-dim: #475569; --text-faint: #7d8da1; --panel: rgba(15, 23, 42, 0.5); --panel-border: #1e293b; --lane-fill: rgba(15, 23, 42, 0.22); --lane-stroke: #334155; --arrow: #94a3b8; --arrow-emphasis: #34d399; --mask: #0f172a; --frontend-fill: rgba(8, 51, 68, 0.4); --frontend-stroke: #22d3ee; --backend-fill: rgba(6, 78, 59, 0.4); --backend-stroke: #34d399; --database-fill: rgba(76, 29, 149, 0.4); --database-stroke: #a78bfa; --cloud-fill: rgba(120, 53, 15, 0.3); --cloud-stroke: #fbbf24; --security-fill: rgba(136, 19, 55, 0.4); --security-stroke: #fb7185; --messagebus-fill: rgba(251, 146, 60, 0.3); --messagebus-stroke: #fb923c; --external-fill: rgba(30, 41, 59, 0.5); --external-stroke: #94a3b8; --toolbar-bg: rgba(15, 23, 42, 0.8); --toolbar-border: #334155; --toolbar-text: #e2e8f0; --toolbar-hover: rgba(15, 23, 42, 0.95); --toolbar-menu-bg: #0f172a; --flow-cycle: ; --flow-halo-peak: ; --flow-glow-peak: ; --flow-tail-peak: ; --flow-head-peak: ; --flow-wake-peak: ; --flow-ripple-peak: ; --flow-peak: ; }
 rect.c-bg-rect { fill: var(--bg); }
-</style><rect x="0" y="0" width="1460" height="912" class="c-bg-rect"/>
+</style><rect x="0" y="0" width="1480" height="912" class="c-bg-rect"/>
         <title id="archify-diagram-title">PureTech: Returns and Scheduling</title>
         <desc id="archify-diagram-description">An architecture diagram generated by Archify.</desc>
         <!-- Definitions -->
@@ -811,9 +811,9 @@ rect.c-bg-rect { fill: var(--bg); }
         <rect width="100%" height="100%" fill="url(#grid)"/>
 
         <!-- Boundaries (behind everything) -->
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" data-composition-frame-label="Apps Script (runs as owner)" x="700" y="80" width="230" height="764" rx="12" class="c-region" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" data-composition-frame-label="Apps Script (runs as owner)" x="690" y="80" width="250" height="764" rx="12" class="c-region" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="1" data-composition-frame-label="PureTech Google Sheet" x="1210" y="80" width="210" height="744" rx="12" class="c-region" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="1" data-composition-frame-label="PureTech Google Sheet" x="1210" y="80" width="230" height="744" rx="12" class="c-region" stroke-width="1"/>
 
         <!-- Connection paths (before components for correct z-order) -->
         <g data-graph-role="automatic-crossover" style="--step:0">
@@ -845,8 +845,8 @@ rect.c-bg-rect { fill: var(--bg); }
           <path data-edge-from="rpage" data-edge-to="recorder" data-edge-label="RETURN / undo" data-edge-key="6" data-edge-id="rpage-recorder" data-composition-points="624,324;624,416;730,416" data-composition-crossover="halo" data-composition-independent="true" d="M 624 324 L 624 408 Q 624 416 632 416 L 730 416" class="a-default" data-animate="edge" style="--step: 6;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:7">
-          <path data-graph-role="automatic-crossover-underlay" d="M 560 650 L 560 580 Q 560 572 568 572 L 730 572" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="spage" data-edge-to="saveusual" data-edge-label="usual week" data-edge-key="7" data-edge-id="spage-saveusual" data-composition-points="560,650;560,572;730,572" data-composition-crossover="halo" data-composition-independent="true" d="M 560 650 L 560 580 Q 560 572 568 572 L 730 572" class="a-default" data-animate="edge" style="--step: 7;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 560 650 L 560 580 Q 560 572 568 572 L 720 572" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="spage" data-edge-to="saveusual" data-edge-label="master" data-edge-key="7" data-edge-id="spage-saveusual" data-composition-points="560,650;560,572;720,572" data-composition-crossover="halo" data-composition-independent="true" d="M 560 650 L 560 580 Q 560 572 568 572 L 720 572" class="a-default" data-animate="edge" style="--step: 7;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:8">
           <path data-graph-role="automatic-crossover-underlay" d="M 640 682 L 730 682" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
@@ -885,8 +885,8 @@ rect.c-bg-rect { fill: var(--bg); }
           <path data-edge-from="recorder" data-edge-to="byinvoice" data-edge-label="rebuild" data-edge-key="16" data-edge-id="recorder-byinvoice" data-composition-points="900,446;1240,446" data-composition-crossover="halo" data-composition-independent="true" d="M 900 446 L 1240 446" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:17">
-          <path data-graph-role="automatic-crossover-underlay" d="M 900 585 L 1240 585" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="saveusual" data-edge-to="usualtabs" data-edge-label="rewrite" data-edge-key="17" data-edge-id="saveusual-usualtabs" data-composition-points="900,585;1240,585" data-composition-crossover="halo" data-composition-independent="true" d="M 900 585 L 1240 585" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 910 585 L 1240 585" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="saveusual" data-edge-to="usualtabs" data-edge-label="rewrite" data-edge-key="17" data-edge-id="saveusual-usualtabs" data-composition-points="910,585;1240,585" data-composition-crossover="halo" data-composition-independent="true" d="M 910 585 L 1240 585" class="a-default" data-animate="edge" style="--step: 12;" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:18">
           <path data-graph-role="automatic-crossover-underlay" d="M 900 666 L 1248 666 Q 1256 666 1256 658 L 1256 624" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
@@ -1001,26 +1001,26 @@ rect.c-bg-rect { fill: var(--bg); }
         <text x="815" y="446" class="t-muted" font-size="9" text-anchor="middle">script lock, rebuild</text>
         </g>
 
-        <g id="node-saveusual" data-node-id="saveusual" data-node-label="saveUsualWeek" tabindex="0" role="button" aria-label="Focus saveUsualWeek, team, days, minimums, Apps Script (runs as owner)" aria-pressed="false" data-node-kind="backend" data-node-sublabel="team, days, minimums" data-node-context="Apps Script (runs as owner)">
-          <title>saveUsualWeek · team, days, minimums · Apps Script (runs as owner)</title>
-          <rect x="730" y="540" width="170" height="64" rx="8" class="c-mask"/>
-          <rect x="730" y="540" width="170" height="64" rx="8" class="c-backend" data-animate="node" style="--step: 8; --flow-node-name: archify-relay-node-5;" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(736 546) scale(0.6875)">
+        <g id="node-saveusual" data-node-id="saveusual" data-node-label="saveMasterSchedule" tabindex="0" role="button" aria-label="Focus saveMasterSchedule, team, days, minimums, Apps Script (runs as owner)" aria-pressed="false" data-node-kind="backend" data-node-sublabel="team, days, minimums" data-node-context="Apps Script (runs as owner)">
+          <title>saveMasterSchedule · team, days, minimums · Apps Script (runs as owner)</title>
+          <rect x="720" y="540" width="190" height="64" rx="8" class="c-mask"/>
+          <rect x="720" y="540" width="190" height="64" rx="8" class="c-backend" data-animate="node" style="--step: 8; --flow-node-name: archify-relay-node-5;" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(726 546) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" x="815" y="570" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">saveUsualWeek</text>
+          <text data-node-label="" x="815" y="570" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">saveMasterSchedule</text>
         <text x="815" y="586" class="t-muted" font-size="9" text-anchor="middle">team, days, minimums</text>
         </g>
 
-        <g id="node-getweek" data-node-id="getweek" data-node-label="getWeek" tabindex="0" role="button" aria-label="Focus getWeek, usual + extra − off, Apps Script (runs as owner)" aria-pressed="false" data-node-kind="backend" data-node-sublabel="usual + extra − off" data-node-tag="buildWeek_" data-node-context="Apps Script (runs as owner)">
-          <title>getWeek · usual + extra − off · Apps Script (runs as owner) · buildWeek_</title>
+        <g id="node-getweek" data-node-id="getweek" data-node-label="getWeek" tabindex="0" role="button" aria-label="Focus getWeek, master + extra − off, Apps Script (runs as owner)" aria-pressed="false" data-node-kind="backend" data-node-sublabel="master + extra − off" data-node-tag="buildWeek_" data-node-context="Apps Script (runs as owner)">
+          <title>getWeek · master + extra − off · Apps Script (runs as owner) · buildWeek_</title>
           <rect x="730" y="650" width="170" height="64" rx="8" class="c-mask"/>
           <rect x="730" y="650" width="170" height="64" rx="8" class="c-backend" data-animate="node" style="--step: 9; --flow-node-name: archify-relay-node-6;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(736 656) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-node-label="" x="815" y="680" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">getWeek</text>
-        <text x="815" y="696" class="t-muted" font-size="9" text-anchor="middle">usual + extra − off</text>
+        <text x="815" y="696" class="t-muted" font-size="9" text-anchor="middle">master + extra − off</text>
         <text x="815" y="706" class="t-backend" font-size="7" text-anchor="middle">buildWeek_</text>
         </g>
 
@@ -1093,16 +1093,16 @@ rect.c-bg-rect { fill: var(--bg); }
         <text x="1315" y="476" class="t-muted" font-size="9" text-anchor="middle">rebuilt each change</text>
         </g>
 
-        <g id="node-usualtabs" data-node-id="usualtabs" data-node-label="Usual week tabs" tabindex="0" role="button" aria-label="Focus Usual week tabs, Staff · Base Week · Needed, PureTech Google Sheet" aria-pressed="false" data-node-kind="database" data-node-sublabel="Staff · Base Week · Needed" data-node-context="PureTech Google Sheet">
-          <title>Usual week tabs · Staff · Base Week · Needed · PureTech Google Sheet</title>
-          <rect x="1240" y="560" width="150" height="64" rx="8" class="c-mask"/>
-          <rect x="1240" y="560" width="150" height="64" rx="8" class="c-database" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-11;" stroke-width="1.5"/>
+        <g id="node-usualtabs" data-node-id="usualtabs" data-node-label="Master schedule tabs" tabindex="0" role="button" aria-label="Focus Master schedule tabs, Staff · Base Week · Needed, PureTech Google Sheet" aria-pressed="false" data-node-kind="database" data-node-sublabel="Staff · Base Week · Needed" data-node-context="PureTech Google Sheet">
+          <title>Master schedule tabs · Staff · Base Week · Needed · PureTech Google Sheet</title>
+          <rect x="1240" y="560" width="170" height="64" rx="8" class="c-mask"/>
+          <rect x="1240" y="560" width="170" height="64" rx="8" class="c-database" data-animate="node" style="--step: 12; --flow-node-name: archify-relay-node-11;" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(1246 566) scale(0.6875)">
             <ellipse cx="8" cy="4" rx="5" ry="2"/>
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
           </g>
-          <text data-node-label="" x="1315" y="590" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Usual week tabs</text>
-        <text x="1315" y="606" class="t-muted" font-size="9" text-anchor="middle">Staff · Base Week · Needed</text>
+          <text data-node-label="" x="1325" y="590" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Master schedule tabs</text>
+        <text x="1325" y="606" class="t-muted" font-size="9" text-anchor="middle">Staff · Base Week · Needed</text>
         </g>
 
         <g id="node-changes" data-node-id="changes" data-node-label="Schedule · Changes" tabindex="0" role="button" aria-label="Focus Schedule · Changes, Off / Extra by date, PureTech Google Sheet" aria-pressed="false" data-node-kind="database" data-node-sublabel="Off / Extra by date" data-node-context="PureTech Google Sheet">
@@ -1146,9 +1146,9 @@ rect.c-bg-rect { fill: var(--bg); }
           <rect x="640.8" y="396" width="72.4" height="14" rx="3" class="c-mask"/>
           <text x="677" y="406" class="t-edge-default" font-size="8" text-anchor="middle">RETURN / undo</text>
         </g>
-        <g data-edge-from="spage" data-edge-to="saveusual" data-edge-label="usual week" data-edge-key="7" data-edge-id="spage-saveusual">
-          <rect x="616" y="552" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="645" y="562" class="t-edge-default" font-size="8" text-anchor="middle">usual week</text>
+        <g data-edge-from="spage" data-edge-to="saveusual" data-edge-label="master" data-edge-key="7" data-edge-id="spage-saveusual">
+          <rect x="620.6" y="552" width="38.8" height="14" rx="3" class="c-mask"/>
+          <text x="640" y="562" class="t-edge-default" font-size="8" text-anchor="middle">master</text>
         </g>
         <g data-edge-from="spage" data-edge-to="getweek" data-edge-label="show week" data-edge-key="8" data-edge-id="spage-getweek">
           <rect x="658.4" y="662" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
@@ -1187,8 +1187,8 @@ rect.c-bg-rect { fill: var(--bg); }
           <text x="1070" y="436" class="t-edge-default" font-size="8" text-anchor="middle">rebuild</text>
         </g>
         <g data-edge-from="saveusual" data-edge-to="usualtabs" data-edge-label="rewrite" data-edge-key="17" data-edge-id="saveusual-usualtabs">
-          <rect x="1048.2" y="565" width="43.6" height="14" rx="3" class="c-mask"/>
-          <text x="1070" y="575" class="t-edge-default" font-size="8" text-anchor="middle">rewrite</text>
+          <rect x="1053.2" y="565" width="43.6" height="14" rx="3" class="c-mask"/>
+          <text x="1075" y="575" class="t-edge-default" font-size="8" text-anchor="middle">rewrite</text>
         </g>
         <g data-edge-from="getweek" data-edge-to="usualtabs" data-edge-label="read" data-edge-key="18" data-edge-id="getweek-usualtabs">
           <rect x="1241" y="625" width="30" height="14" rx="3" class="c-mask"/>
@@ -1205,13 +1205,13 @@ rect.c-bg-rect { fill: var(--bg); }
 
         <!-- Boundary labels (foreground masks keep routes out of titles) -->
         <g data-graph-role="structural-frame-label" data-composition-frame-id="0" data-composition-frame-kind="region" data-composition-frame-label="Apps Script (runs as owner)">
-          <rect data-graph-role="structural-frame-label-mask" x="704" y="89" width="162.59356458709675" height="17" rx="3" class="c-mask"/>
-          <text data-boundary-label="" x="708" y="102.41935583870968" class="t-cloud" font-size="9.419355838709677" font-weight="600">Apps Script (runs as owner)</text>
+          <rect data-graph-role="structural-frame-label-mask" x="694" y="89" width="164.68388716774191" height="17" rx="3" class="c-mask"/>
+          <text data-boundary-label="" x="698" y="102.54838809677419" class="t-cloud" font-size="9.548388096774193" font-weight="600">Apps Script (runs as owner)</text>
         </g>
 
         <g data-graph-role="structural-frame-label" data-composition-frame-id="1" data-composition-frame-kind="region" data-composition-frame-label="PureTech Google Sheet">
-          <rect data-graph-role="structural-frame-label-mask" x="1214" y="89" width="128.68388356774193" height="17" rx="3" class="c-mask"/>
-          <text data-boundary-label="" x="1218" y="102.41935583870968" class="t-cloud" font-size="9.419355838709677" font-weight="600">PureTech Google Sheet</text>
+          <rect data-graph-role="structural-frame-label-mask" x="1214" y="89" width="130.30969001935483" height="17" rx="3" class="c-mask"/>
+          <text data-boundary-label="" x="1218" y="102.54838809677419" class="t-cloud" font-size="9.548388096774193" font-weight="600">PureTech Google Sheet</text>
         </g>
 
         <!-- Legend -->
