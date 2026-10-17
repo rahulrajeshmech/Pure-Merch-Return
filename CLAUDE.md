@@ -33,8 +33,9 @@ text, few choices, plain words. Never add steps or settings to their screen with
 
 ## Getting changes into Google (manual, by the owner)
 
-This repo is NOT linked to any Google account, and must not be: do not set up clasp, Google sign-in
-or any other connection to the owner's Google account. The owner copies the code across by hand.
+This repo is NOT linked to any Google account. Do not set up clasp, Google sign-in or any other
+connection to the owner's Google account unless the owner explicitly asks for it in their own words
+(see "Linking to Google later" below). Until then, the owner copies the code across by hand.
 
 After every change:
 
@@ -50,3 +51,17 @@ After every change:
    Offer to print a changed file's full contents so they can copy it straight from the terminal.
 
 The owner is not technical: one action per step, no jargon.
+
+## Linking to Google later (only when the owner asks)
+
+Google's clasp tool can upload and deploy the code directly:
+
+1. Owner turns on "Google Apps Script API" at https://script.google.com/home/usersettings.
+2. `npx @google/clasp login`, signed in to the Google account that receives the invoices.
+3. Owner copies the Script ID from the Apps Script editor (gear → Project Settings); create
+   `apps-script/.clasp.json` with `{"scriptId": "<id>", "rootDir": "."}`.
+4. Upload: `cd apps-script && npx @google/clasp push`.
+5. Publish at the same URL: `npx @google/clasp deployments` to find the web app deployment ID
+   (not `@HEAD`), then `npx @google/clasp deploy -i <deploymentId> -d "<what changed>"`.
+
+To unlink again: `npx @google/clasp logout` and delete `apps-script/.clasp.json`.
