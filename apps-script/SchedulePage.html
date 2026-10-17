@@ -30,7 +30,7 @@
                        font-size: 18px; font-weight: 600; text-decoration: underline; }
 
   /* Day cards */
-  .sc-week { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .sc-week { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start; }
   @media (min-width: 1000px) { .sc-week { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
   .sc-day { background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 12px;
             display: flex; flex-direction: column; gap: 10px; min-width: 0; }
@@ -62,7 +62,15 @@
   .sc-empty { color: var(--muted); font-size: 15px; }
   .sc-note { font-size: 13px; color: var(--warn); font-weight: 700; }
   .sc-fix { background: none; color: #2f6fed; padding: 0; font-size: 15px; font-weight: 700; text-align: left;
-            text-decoration: underline; margin-top: auto; }
+            text-decoration: underline; }
+  .sc-week .sc-day[data-day] { cursor: pointer; }
+  .sc-week .sc-day[data-day]:hover { border-color: #9aa3b0; }
+  .sc-week .sc-day.short[data-day]:hover { border-color: var(--bad); }
+  .sc-day.open { box-shadow: 0 6px 18px #1b1d2122; }
+  .sc-more { margin-top: auto; font-size: 13px; font-weight: 700; color: var(--muted); }
+  .sc-part { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 8px; }
+  .sc-parttitle { font-size: 13px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+  .sc-changeline { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 14px; color: var(--muted); }
   .sc-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 18px;
                color: var(--muted); font-size: 15px; }
 
@@ -209,6 +217,7 @@ const Scheduling = (() => {
     monday: mondayOf(todayIso()),  // week shown on the Calendar
     weeks: {},                     // getWeek results by Monday
     flash: null,                   // day card to highlight after a change
+    open: null,                    // date of the day card opened to show who is working
     note: null,                    // message to show once the calendar has loaded
     mode: null,                    // Make changes: 'off' | 'extra' | 'master'
     form: null,                    // { monday, date, name, reason }
@@ -290,9 +299,12 @@ const Scheduling = (() => {
       + '</s> <small>Off' + (o.reason ? ' · ' + esc(o.reason) : '') + '</small></span>';
   }
 
+  // A card shows the counts for each kind of worker. Clicking it opens it to show
+  // everyone working that day and the changes from the master schedule.
   function dayCard(d, i) {
     const today = d.date === todayIso();
-    const cls = 'sc-day' + (d.ok ? '' : ' short') + (today ? ' today' : '') + (d.closed ? ' closed' : '');
+    const open = S.open === d.date && !d.closed;
+    const cls = 'sc-day' + (d.ok ? '' : ' short') + (today ? ' today' : '') + (d.closed ? ' closed' : '') + (open ? ' open' : '');
     const head = '<div class="sc-dayhead"><div><div class="sc-dow">' + DAY[i] + '</div><div class="sc-date">' + shortDate(d.date)
       + (today ? ' · <span class="sc-today">Today</span>' : '') + '</div></div>'
       + (d.closed ? '' : d.ok ? '<span class="sc-pill ok">✓ All covered</span>' : '<span class="sc-pill bad">✗ Short</span>') + '</div>';
@@ -303,29 +315,52 @@ const Scheduling = (() => {
       return '<span class="sc-min t-' + t.key + (c.ok ? '' : ' bad') + '" title="' + esc(t.label + ': ' + c.have + ' working, ' + c.need + ' needed') + '">'
         + t.emoji + ' ' + c.have + '/' + c.need + ' ' + (c.ok ? '✓' : '✗') + '</span>';
     }).join('');
-    const people = d.people.map(chip).concat(d.off.map(offChip));
-    return '<div class="' + cls + '" id="scDay-' + d.date + '">' + head
+    let details = '';
+    if (open) {
+      const extras = d.people.filter(p => p.status === 'extra');
+      details = '<div class="sc-part"><div class="sc-parttitle">Working (' + d.people.length + ')</div>'
+        + '<div class="sc-chips">' + (d.people.length ? d.people.map(chip).join('') : '<span class="sc-empty">No one working</span>') + '</div></div>'
+        + '<div class="sc-part"><div class="sc-parttitle">Changes</div>'
+        + (d.changeCount ? d.off.map(o => '<div class="sc-changeline">' + offChip(o) + '</div>').join('')
+            + extras.map(p => '<div class="sc-changeline">' + chip(p) + '</div>').join('')
+          : '<span class="sc-empty">None. Same as the master schedule.</span>') + '</div>'
+        + (d.ok ? '' : '<button class="sc-fix" data-fix="' + d.date + '">Fix this day →</button>');
+    }
+    return '<div class="' + cls + '" id="scDay-' + d.date + '" data-day="' + d.date + '" role="button" tabindex="0" aria-expanded="' + open + '">' + head
       + '<div class="sc-mins">' + mins + '</div>'
-      + '<div class="sc-chips">' + (people.length ? people.join('') : '<span class="sc-empty">No one working</span>') + '</div>'
-      + (d.changeCount ? '<div class="sc-note">' + plural(d.changeCount, 'change') + ' from the master schedule</div>' : '')
-      + (d.ok ? '' : '<button class="sc-fix" data-fix="' + d.date + '">Fix this day →</button>')
+      + (d.changeCount && !open ? '<div class="sc-note">' + plural(d.changeCount, 'change') + ' from the master schedule</div>' : '')
+      + details
+      + '<div class="sc-more">' + (open ? 'Hide ▴' : 'Show who is working ▾') + '</div>'
       + '</div>';
   }
 
-  $('scPrev').addEventListener('click', () => { S.monday = addDays(S.monday, -7); loadCalendar(); });
-  $('scNext').addEventListener('click', () => { S.monday = addDays(S.monday, 7); loadCalendar(); });
-  $('scToday').addEventListener('click', () => { S.monday = mondayOf(todayIso()); S.flash = todayIso(); loadCalendar(); });
+  $('scPrev').addEventListener('click', () => { S.monday = addDays(S.monday, -7); S.open = null; loadCalendar(); });
+  $('scNext').addEventListener('click', () => { S.monday = addDays(S.monday, 7); S.open = null; loadCalendar(); });
+  $('scToday').addEventListener('click', () => { S.monday = mondayOf(todayIso()); S.open = null; S.flash = todayIso(); loadCalendar(); });
   $('scSummary').addEventListener('click', e => {
-    const el = e.target.dataset.goto && $('scDay-' + e.target.dataset.goto);
-    if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+    const date = e.target.dataset.goto;
+    if (!date) return;
+    // Open the short day so it is clear who is missing.
+    S.open = date;
+    S.flash = date;
+    renderCalendar();
   });
   $('scWeek').addEventListener('click', e => {
     const date = e.target.dataset.fix;
-    if (!date) return;
-    // Most shortages are fixed by bringing someone in.
-    S.mode = 'extra';
-    S.form = { monday: mondayOf(date), date, name: null, reason: '' };
-    showView('changes');
+    if (date) {
+      // Most shortages are fixed by bringing someone in.
+      S.mode = 'extra';
+      S.form = { monday: mondayOf(date), date, name: null, reason: '' };
+      return showView('changes');
+    }
+    const card = e.target.closest('.sc-day[data-day]');
+    if (!card) return;
+    S.open = S.open === card.dataset.day ? null : card.dataset.day;
+    renderCalendar();
+    $('scDay-' + card.dataset.day).focus({ preventScroll: true });
+  });
+  $('scWeek').addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.sc-day[data-day]')) { e.preventDefault(); e.target.click(); }
   });
 
   // ------------------------------------------------------------------------
@@ -437,6 +472,7 @@ const Scheduling = (() => {
     delete S.weeks[f.monday];
     S.monday = f.monday;
     S.flash = f.date;
+    S.open = f.date;
     S.note = '✓ Saved: ' + f.name + (S.mode === 'off' ? ' is off on ' : ' is coming in on ') + longDay(f.date) + '.';
     S.mode = null;
     S.form = null;

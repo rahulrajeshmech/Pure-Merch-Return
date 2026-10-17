@@ -33,10 +33,14 @@ Apart from these three pictures, the app uses plain words, no emoji.
 - One card per day, Monday to Sunday. Use **◀ ▶** to change week and **Today** to come back.
 - Each day shows a badge per kind of worker, e.g. `🚚 1/2 ✗`: 1 driver working, 2 needed, so the
   day is short. A short day has a red border, and the red box at the top lists every short day.
-- People working are shown as coloured name tags. Changes from the master schedule stand out:
-  a **greyed, crossed-out** tag means a day off; a **dashed** tag marked **+ COVER** means extra cover.
+- The cards show only the numbers. If anything differs from the master schedule, the card says how many
+  changes there are (e.g. "1 change from the master schedule").
+- **Click a day card** to open it. It then lists everyone working that day under **Working** (extra cover
+  marked **+ COVER**) and that day's **Changes**: days off (greyed and crossed out, with the reason) and
+  extra cover. Click it again to close it. Only one day is open at a time.
+- Clicking a short day in the red box at the top opens that day.
 - A day with no minimum and nobody working shows **Closed**.
-- Nothing can be changed here. A short day has a **Fix this day →** link that opens Make changes.
+- Nothing can be changed here. An open short day has a **Fix this day →** link that opens Make changes.
 
 ### Make changes (for changing)
 
