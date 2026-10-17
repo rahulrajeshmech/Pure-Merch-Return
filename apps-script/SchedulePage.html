@@ -1,0 +1,635 @@
+<!-- PureTech — Scheduling section. Pasted into Index.html. -->
+<style>
+  .scheduling { max-width: 1440px; margin: 0 auto; padding: 16px 16px 60px; }
+  .scheduling .t-full   { --tc: #2f5fb3; --tb: #e8effc; }
+  .scheduling .t-part   { --tc: #7a3fd1; --tb: #f1e9ff; }
+  .scheduling .t-driver { --tc: #b85c00; --tb: #fff0e0; }
+
+  /* Calendar / Make changes buttons */
+  .sc-views { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .sc-views button { padding: 12px 24px; font-size: 22px; font-weight: 700; background: var(--card);
+                     border: 2px solid var(--line); color: var(--text); }
+  .sc-views button.on { background: var(--text); border-color: var(--text); color: #fff; }
+  .sc-msg { margin: 0 0 12px; font-size: 18px; color: var(--muted); }
+  .sc-msg.err { color: var(--bad); font-weight: 600; }
+  .scheduling h3 { font-size: 22px; margin: 22px 0 10px; }
+  .sc-hint { color: var(--muted); font-size: 18px; margin: 8px 0; }
+
+  /* Week header */
+  .sc-weeknav { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .sc-weeknav h2 { margin: 0 8px; font-size: 26px; min-width: 0; }
+  .sc-weeknav button { padding: 8px 16px; font-size: 20px; font-weight: 700; background: var(--card);
+                       border: 2px solid var(--line); color: var(--text); }
+
+  /* Week summary */
+  .sc-summary { border-radius: 12px; padding: 12px 16px; margin-bottom: 14px; font-size: 19px; font-weight: 600; }
+  .sc-summary.ok { background: var(--ok-bg); color: var(--ok); }
+  .sc-summary.bad { background: var(--bad-bg); color: var(--bad); }
+  .sc-summary.info { background: var(--card); border: 2px dashed var(--line); color: var(--muted); font-weight: 400; }
+  .sc-summary button { display: block; background: none; color: inherit; padding: 3px 0; text-align: left;
+                       font-size: 18px; font-weight: 600; text-decoration: underline; }
+
+  /* Day cards */
+  .sc-week { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 1000px) { .sc-week { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
+  .sc-day { background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 12px;
+            display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .sc-day.short { border: 3px solid var(--bad); }
+  .sc-day.today { box-shadow: 0 0 0 4px #2f6fed55; }
+  .sc-day.closed { opacity: .55; }
+  .sc-day.flash { animation: sc-flash 1.6s ease-out 2; }
+  @keyframes sc-flash { 0% { box-shadow: 0 0 0 8px #f5c518; } 100% { box-shadow: 0 0 0 0 #f5c51800; } }
+  .sc-dayhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; flex-wrap: wrap; }
+  .sc-dow { font-size: 18px; font-weight: 800; }
+  .sc-date { font-size: 15px; color: var(--muted); }
+  .sc-today { font-size: 13px; font-weight: 700; color: #2f6fed; }
+  .sc-pill { font-size: 14px; font-weight: 800; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+  .sc-pill.ok { background: var(--ok-bg); color: var(--ok); }
+  .sc-pill.bad { background: var(--bad); color: #fff; }
+  .sc-closed { color: var(--muted); font-size: 18px; text-align: center; padding: 20px 0; }
+  .sc-mins { display: flex; flex-wrap: wrap; gap: 5px; }
+  .sc-min { background: var(--tc); color: #fff; border: 2px solid var(--tc); border-radius: 8px;
+            padding: 2px 7px; font-size: 15px; font-weight: 700; white-space: nowrap; }
+  .sc-min.bad { background: #fff; color: var(--bad); border-color: var(--bad); }
+  .sc-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .sc-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--tb); color: var(--tc);
+             border: 2px solid var(--tc); border-radius: 999px; padding: 2px 10px; font-size: 15px; font-weight: 600;
+             max-width: 100%; overflow-wrap: anywhere; }
+  .sc-chip small { font-size: 11px; font-weight: 800; text-transform: uppercase; }
+  .sc-chip.extra { border-style: dashed; }
+  .sc-chip.off { background: #eceef1; color: #7c838f; border-color: #c3c8d0; }
+  .sc-chip.off s { text-decoration-thickness: 2px; }
+  .sc-empty { color: var(--muted); font-size: 15px; }
+  .sc-note { font-size: 13px; color: var(--warn); font-weight: 700; }
+  .sc-fix { background: none; color: #2f6fed; padding: 0; font-size: 15px; font-weight: 700; text-align: left;
+            text-decoration: underline; margin-top: auto; }
+  .sc-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 18px;
+               color: var(--muted); font-size: 15px; }
+
+  /* Make changes */
+  .sc-choices { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 760px) { .sc-choices { grid-template-columns: repeat(3, 1fr); } }
+  .sc-choices button { background: var(--card); border: 3px solid var(--line); padding: 14px 16px; text-align: left;
+                       color: var(--text); }
+  .sc-choices button.on { border-color: var(--text); background: #eef0f3; }
+  .sc-choices .big { font-size: 24px; font-weight: 800; display: block; }
+  .sc-choices .small { font-size: 16px; color: var(--muted); }
+  .sc-daypick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+  .sc-daypick > button { flex: 1 0 74px; background: var(--card); border: 2px solid var(--line); padding: 8px 4px;
+                         display: flex; flex-direction: column; align-items: center; color: var(--text); }
+  .sc-daypick > button.arrow { flex: 0 0 48px; justify-content: center; font-weight: 800; }
+  .sc-daypick > button.sel { background: var(--text); border-color: var(--text); color: #fff; }
+  .sc-daypick b { font-size: 18px; }
+  .sc-daypick span { font-size: 14px; }
+  .sc-daypick i { font-style: normal; font-size: 13px; font-weight: 700; color: var(--ok); }
+  .sc-daypick .bad i { color: var(--bad); }
+  .sc-daypick .sel i { color: #fff; }
+  .sc-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sc-pick button.sc-chip { font-size: 19px; padding: 8px 16px; cursor: pointer; }
+  .sc-pick button.sc-chip.sel { background: var(--tc); color: #fff; box-shadow: 0 0 0 3px #1b1d2133; }
+  .sc-reasons { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sc-reasons button { background: var(--card); border: 2px solid var(--line); padding: 8px 18px; font-size: 19px; }
+  .sc-reasons button.sel { border-color: var(--text); background: var(--text); color: #fff; }
+  .sc-preview { margin-top: 18px; padding: 12px 16px; border-radius: 12px; font-size: 19px; font-weight: 600; }
+  .sc-preview.ok { background: var(--ok-bg); color: var(--ok); }
+  .sc-preview.bad { background: var(--bad-bg); color: var(--bad); }
+  .sc-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; align-items: center; }
+  .sc-save { padding: 16px 34px; font-size: 24px; font-weight: 800; background: var(--ok); color: #fff; }
+  .sc-save:disabled { background: #a9b0bb; cursor: not-allowed; }
+  .sc-cancel { padding: 14px 24px; font-size: 20px; background: none; border: 2px solid var(--line); color: var(--text); }
+  .sc-list { display: flex; flex-direction: column; gap: 8px; }
+  .sc-change { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--card);
+               border: 2px solid var(--line); border-radius: 12px; padding: 10px 14px; font-size: 18px; }
+  .sc-change .when { font-weight: 800; }
+  .sc-change button { margin-left: auto; background: none; color: var(--bad); border: 2px solid var(--bad);
+                      padding: 4px 14px; font-size: 16px; font-weight: 700; }
+
+  /* Usual week */
+  .sc-team { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .sc-person { background: var(--card); border: 2px solid var(--line); border-left: 8px solid var(--tc, var(--line));
+               border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .sc-person.paused { opacity: .6; }
+  .sc-person input { font: inherit; font-size: 20px; font-weight: 700; padding: 6px 10px; width: 100%;
+                     border: 2px solid var(--line); border-radius: 8px; }
+  .sc-types { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sc-types button { flex: 1 1 auto; padding: 6px 8px; font-size: 15px; font-weight: 700; background: #f0f1f4;
+                     color: var(--text); border: 2px solid transparent; }
+  .sc-types button.on { background: var(--tb); color: var(--tc); border-color: var(--tc); }
+  .sc-prow { display: flex; gap: 6px; justify-content: space-between; }
+  .sc-prow button { background: none; padding: 2px 0; font-size: 14px; color: var(--muted); text-decoration: underline; }
+  .sc-newperson { border: 2px dashed var(--line); background: none; font-size: 20px; font-weight: 700;
+                  color: var(--muted); min-height: 120px; }
+  .sc-mintitle { font-size: 13px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+  .sc-need { display: flex; align-items: center; gap: 6px; font-size: 16px; }
+  .sc-need .e { width: 26px; }
+  .sc-need button { width: 30px; height: 30px; padding: 0; font-size: 20px; font-weight: 800; background: var(--tb);
+                    color: var(--tc); border: 2px solid var(--tc); }
+  .sc-need b { min-width: 22px; text-align: center; font-size: 18px; }
+  .sc-need .mark { margin-left: auto; font-size: 14px; font-weight: 800; color: var(--ok); white-space: nowrap; }
+  .sc-need.bad .mark { color: var(--bad); }
+  .sc-chip .x { background: none; color: inherit; padding: 0 0 0 2px; font-size: 16px; font-weight: 800; line-height: 1; }
+  .sc-add, .sc-copy { background: none; padding: 0; font-size: 15px; font-weight: 700; color: #2f6fed;
+                      text-decoration: underline; text-align: left; }
+  .sc-copy { color: var(--muted); font-weight: 400; }
+  .sc-adding { display: flex; flex-wrap: wrap; gap: 5px; padding: 8px; background: #f0f1f4; border-radius: 10px; }
+  .sc-adding button.sc-chip { cursor: pointer; }
+</style>
+
+<main id="schedulingSection" class="scheduling" hidden>
+  <nav class="sc-views">
+    <button data-view="calendar">📅 Calendar</button>
+    <button data-view="changes">✏️ Make changes</button>
+  </nav>
+  <div class="sc-msg" id="scMsg"></div>
+
+  <section id="scCalendar">
+    <div class="sc-weeknav">
+      <button id="scPrev" aria-label="Last week">◀</button>
+      <h2 id="scRange"></h2>
+      <button id="scNext" aria-label="Next week">▶</button>
+      <button id="scToday">Today</button>
+    </div>
+    <div id="scSummary"></div>
+    <div class="sc-week" id="scWeek"></div>
+    <div class="sc-legend">
+      <span class="sc-chip t-full">👷 Full time</span>
+      <span class="sc-chip t-part">⏰ Part time</span>
+      <span class="sc-chip t-driver">🚚 Driver</span>
+      <span class="sc-chip off">👷 <s>Name</s> <small>Off</small></span>
+      <span class="sc-chip t-full extra">👷 Name <small>+ cover</small></span>
+      <span><b style="color:var(--ok)">✓</b> minimum met · <b style="color:var(--bad)">✗</b> short</span>
+    </div>
+  </section>
+
+  <section id="scChanges" hidden>
+    <div class="sc-choices" id="scChoices">
+      <button data-mode="off"><span class="big">🏖️ Day off</span><span class="small">Someone is not coming in</span></button>
+      <button data-mode="extra"><span class="big">➕ Extra cover</span><span class="small">Bring someone in on a day they don't usually work</span></button>
+      <button data-mode="usual"><span class="big">🔁 Usual week</span><span class="small">Your team, who works which days, and the minimum each day</span></button>
+    </div>
+    <div id="scForm"></div>
+    <div id="scList"></div>
+  </section>
+</main>
+
+<script>
+const Scheduling = (() => {
+  // Pictures and colours for the three kinds of worker. Change the emoji here.
+  const TYPES = [
+    { key: 'full', label: 'Full time', many: 'Full time', emoji: '👷' },
+    { key: 'part', label: 'Part time', many: 'Part time', emoji: '⏰' },
+    { key: 'driver', label: 'Driver', many: 'Drivers', emoji: '🚚' },
+  ];
+  const TYPE = Object.fromEntries(TYPES.map(t => [t.key, t]));
+  const REASONS = [['🤒', 'Sick'], ['🌴', 'Holiday'], ['📝', 'Other']];
+  const DAY = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const DAY3 = DAY.map(d => d.slice(0, 3));
+
+  // Dates are plain yyyy-mm-dd strings, worked out in UTC so the computer's time zone can't shift a day.
+  const pad = n => String(n).padStart(2, '0');
+  const utc = iso => new Date(iso + 'T00:00:00Z');
+  const addDays = (iso, n) => { const d = utc(iso); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+  const mondayOf = iso => addDays(iso, -((utc(iso).getUTCDay() + 6) % 7));
+  const todayIso = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+  const fmt = (iso, opts) => utc(iso).toLocaleDateString('en-GB', Object.assign({ timeZone: 'UTC' }, opts));
+  const dayIndex = iso => (utc(iso).getUTCDay() + 6) % 7;
+  const shortDate = iso => fmt(iso, { day: 'numeric', month: 'short' });
+  const longDay = iso => DAY[dayIndex(iso)] + ' ' + shortDate(iso);
+  const weekLabel = monday => {
+    const sun = addDays(monday, 6);
+    if (monday.slice(0, 7) === sun.slice(0, 7)) return fmt(monday, { day: 'numeric' }) + ' – ' + fmt(sun, { day: 'numeric', month: 'long', year: 'numeric' });
+    if (monday.slice(0, 4) === sun.slice(0, 4)) return shortDate(monday) + ' – ' + fmt(sun, { day: 'numeric', month: 'short', year: 'numeric' });
+    return fmt(monday, { day: 'numeric', month: 'short', year: 'numeric' }) + ' – ' + fmt(sun, { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+  const count = (n, t) => n + ' ' + (n === 1 ? t.label : t.many);
+  const plural = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
+
+  const S = {
+    view: 'calendar',
+    monday: mondayOf(todayIso()),  // week shown on the Calendar
+    weeks: {},                     // getWeek results by Monday
+    flash: null,                   // day card to highlight after a change
+    note: null,                    // message to show once the calendar has loaded
+    mode: null,                    // Make changes: 'off' | 'extra' | 'usual'
+    form: null,                    // { monday, date, name, reason }
+    draft: null,                   // usual week being edited
+  };
+  let nextId = 1;
+
+  async function week(monday, fresh) {
+    if (fresh || !S.weeks[monday]) S.weeks[monday] = await call('getWeek', monday);
+    return S.weeks[monday];
+  }
+
+  function msg(text, err) { $('scMsg').textContent = text || ''; $('scMsg').className = 'sc-msg' + (err ? ' err' : ''); }
+  const fail = err => msg('Something went wrong: ' + (err && err.message || err), true);
+
+  function showView(view) {
+    if (view !== 'changes' && !leaveDraft()) return;
+    S.view = view;
+    $('scCalendar').hidden = view !== 'calendar';
+    $('scChanges').hidden = view !== 'changes';
+    document.querySelectorAll('.sc-views button').forEach(b => b.classList.toggle('on', b.dataset.view === view));
+    msg('');
+    if (view === 'calendar') loadCalendar();
+    else loadChanges();
+  }
+
+  // ------------------------------------------------------------------------
+  // 📅 Calendar (view only)
+
+  async function loadCalendar() {
+    const monday = S.monday;
+    $('scRange').textContent = weekLabel(monday);
+    if (!S.weeks[monday]) { $('scSummary').innerHTML = ''; $('scWeek').innerHTML = ''; msg('Loading…'); }
+    else renderCalendar();
+    try {
+      await week(monday, true);
+    } catch (err) { return fail(err); }
+    if (S.monday !== monday || S.view !== 'calendar') return;
+    msg(S.note);
+    S.note = null;
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    const w = S.weeks[S.monday];
+    if (!w) return;
+    if (!w.staff.some(s => s.active)) {
+      $('scSummary').className = 'sc-summary info';
+      $('scSummary').innerHTML = 'No one is on the schedule yet. Press <b>✏️ Make changes</b>, then <b>🔁 Usual week</b>, to add your team.';
+      $('scWeek').innerHTML = '';
+      return;
+    }
+    const problems = [];
+    w.days.forEach(d => d.short.forEach(s => {
+      const away = d.off.filter(o => o.type === s.type).map(o => o.name);
+      problems.push('<button data-goto="' + d.date + '">' + esc(DAY3[dayIndex(d.date)] + ' ' + shortDate(d.date)) + ' — '
+        + TYPE[s.type].emoji + ' ' + esc(count(s.missing, TYPE[s.type])) + ' short'
+        + (away.length ? ' (' + esc(away.join(', ')) + ' off)' : '') + '</button>');
+    }));
+    $('scSummary').className = 'sc-summary ' + (problems.length ? 'bad' : 'ok');
+    $('scSummary').innerHTML = problems.length ? '✗ Not enough people:' + problems.join('') : '✓ Fully staffed all week';
+    $('scWeek').innerHTML = w.days.map(dayCard).join('');
+
+    if (S.flash) {
+      const el = $('scDay-' + S.flash);
+      S.flash = null;
+      if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('flash'); }
+    }
+  }
+
+  function chip(p) {
+    const t = TYPE[p.type];
+    return '<span class="sc-chip t-' + p.type + (p.status === 'extra' ? ' extra' : '') + '">' + t.emoji + ' ' + esc(p.name)
+      + (p.status === 'extra' ? ' <small>+ cover</small>' : '') + '</span>';
+  }
+
+  function offChip(o) {
+    return '<span class="sc-chip off" title="' + esc(o.name + ' is off') + '">' + TYPE[o.type].emoji + ' <s>' + esc(o.name)
+      + '</s> <small>Off' + (o.reason ? ' · ' + esc(o.reason) : '') + '</small></span>';
+  }
+
+  function dayCard(d, i) {
+    const today = d.date === todayIso();
+    const cls = 'sc-day' + (d.ok ? '' : ' short') + (today ? ' today' : '') + (d.closed ? ' closed' : '');
+    const head = '<div class="sc-dayhead"><div><div class="sc-dow">' + DAY[i] + '</div><div class="sc-date">' + shortDate(d.date)
+      + (today ? ' · <span class="sc-today">Today</span>' : '') + '</div></div>'
+      + (d.closed ? '' : d.ok ? '<span class="sc-pill ok">✓ All covered</span>' : '<span class="sc-pill bad">✗ Short</span>') + '</div>';
+    if (d.closed) return '<div class="' + cls + '" id="scDay-' + d.date + '">' + head + '<div class="sc-closed">Closed</div></div>';
+
+    const mins = TYPES.map(t => {
+      const c = d.counts[t.key];
+      return '<span class="sc-min t-' + t.key + (c.ok ? '' : ' bad') + '" title="' + esc(t.label + ': ' + c.have + ' working, ' + c.need + ' needed') + '">'
+        + t.emoji + ' ' + c.have + '/' + c.need + ' ' + (c.ok ? '✓' : '✗') + '</span>';
+    }).join('');
+    const people = d.people.map(chip).concat(d.off.map(offChip));
+    return '<div class="' + cls + '" id="scDay-' + d.date + '">' + head
+      + '<div class="sc-mins">' + mins + '</div>'
+      + '<div class="sc-chips">' + (people.length ? people.join('') : '<span class="sc-empty">No one working</span>') + '</div>'
+      + (d.changeCount ? '<div class="sc-note">' + plural(d.changeCount, 'change') + ' from the usual week</div>' : '')
+      + (d.ok ? '' : '<button class="sc-fix" data-fix="' + d.date + '">Fix this day →</button>')
+      + '</div>';
+  }
+
+  $('scPrev').addEventListener('click', () => { S.monday = addDays(S.monday, -7); loadCalendar(); });
+  $('scNext').addEventListener('click', () => { S.monday = addDays(S.monday, 7); loadCalendar(); });
+  $('scToday').addEventListener('click', () => { S.monday = mondayOf(todayIso()); S.flash = todayIso(); loadCalendar(); });
+  $('scSummary').addEventListener('click', e => {
+    const el = e.target.dataset.goto && $('scDay-' + e.target.dataset.goto);
+    if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+  });
+  $('scWeek').addEventListener('click', e => {
+    const date = e.target.dataset.fix;
+    if (!date) return;
+    // Most shortages are fixed by bringing someone in.
+    S.mode = 'extra';
+    S.form = { monday: mondayOf(date), date, name: null, reason: '' };
+    showView('changes');
+  });
+
+  // ------------------------------------------------------------------------
+  // ✏️ Make changes
+
+  async function loadChanges() {
+    if (!S.form) S.form = { monday: S.monday, date: null, name: null, reason: '' };
+    const monday = S.form.monday;
+    if (!S.weeks[monday]) { $('scForm').innerHTML = ''; $('scList').innerHTML = ''; msg('Loading…'); }
+    else renderChanges();
+    try {
+      await week(monday, true);
+    } catch (err) { return fail(err); }
+    if (S.view !== 'changes' || S.form.monday !== monday) return;
+    msg('');
+    if (S.mode === 'usual' && !S.draft) startUsual();
+    if (S.mode !== 'usual') renderChanges();
+  }
+
+  function renderChanges() {
+    document.querySelectorAll('#scChoices button').forEach(b => b.classList.toggle('on', b.dataset.mode === S.mode));
+    if (S.mode === 'usual') { renderUsual(); $('scList').innerHTML = ''; return; }
+    if (!S.mode) $('scForm').innerHTML = '<p class="sc-hint">Tap what you want to change.</p>';
+    else renderForm();
+    renderList();
+  }
+
+  $('scChoices').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b || b.dataset.mode === S.mode || !leaveDraft()) return;
+    S.mode = b.dataset.mode;
+    S.form = { monday: S.form.monday, date: null, name: null, reason: '' };
+    msg('');
+    if (S.mode === 'usual') {
+      if (S.weeks[S.form.monday]) startUsual(); else loadChanges();
+    } else renderChanges();
+  });
+
+  // Day off / Extra cover: 1. which day → 2. who → 3. why (day off only) → Save.
+  function renderForm() {
+    const f = S.form;
+    const w = S.weeks[f.monday];
+    if (!w) return;
+    const isOff = S.mode === 'off';
+    let html = '<h3>1. Which day?</h3><div class="sc-daypick">'
+      + '<button class="arrow" data-wk="-7" aria-label="Last week">◀</button>'
+      + w.days.map(d => '<button class="' + (d.date === f.date ? 'sel ' : '') + (d.ok ? '' : 'bad') + '" data-date="' + d.date + '">'
+        + '<b>' + DAY3[dayIndex(d.date)] + '</b><span>' + shortDate(d.date) + '</span>'
+        + '<i>' + (d.closed ? 'Closed' : d.ok ? '✓' : '✗ short') + '</i></button>').join('')
+      + '<button class="arrow" data-wk="7" aria-label="Next week">▶</button></div>';
+
+    const d = f.date && w.days.find(x => x.date === f.date);
+    if (d) {
+      const shortTypes = d.short.map(s => s.type);
+      const people = isOff ? d.people : w.staff
+        .filter(s => s.active && TYPE[s.type] && !d.people.some(p => p.name === s.name) && !d.off.some(o => o.name === s.name))
+        .sort((a, b) => (shortTypes.includes(b.type) - shortTypes.includes(a.type))
+          || TYPES.indexOf(TYPE[a.type]) - TYPES.indexOf(TYPE[b.type]) || a.name.localeCompare(b.name));
+      html += '<h3>2. ' + (isOff ? 'Who is off on ' : 'Who will come in on ') + esc(longDay(d.date)) + '?</h3>';
+      html += people.length ? '<div class="sc-pick">' + people.map(p =>
+        '<button class="sc-chip t-' + p.type + (f.name === p.name ? ' sel' : '') + '" data-name="' + esc(p.name) + '">'
+        + TYPE[p.type].emoji + ' ' + esc(p.name)
+        + (!isOff && shortTypes.includes(p.type) ? ' <small>needed</small>' : '')
+        + (isOff && p.status === 'extra' ? ' <small>+ cover</small>' : '') + '</button>').join('') + '</div>'
+        : '<p class="sc-hint">' + (isOff ? 'No one is working that day.' : 'Everyone is already working that day.')
+          + (!isOff && d.off.length ? ' To bring back someone who is off, press Undo on their day off below.' : '') + '</p>';
+
+      const person = f.name && people.find(p => p.name === f.name);
+      if (person && isOff && person.status !== 'extra') {
+        html += '<h3>3. Why? <span class="sc-hint">(you can skip this)</span></h3><div class="sc-reasons">'
+          + REASONS.map(r => '<button class="' + (f.reason === r[1] ? 'sel' : '') + '" data-reason="' + r[1] + '">' + r[0] + ' ' + r[1] + '</button>').join('')
+          + '</div>';
+      }
+      if (person) {
+        html += preview(d, person, isOff)
+          + '<div class="sc-actions"><button class="sc-save" data-act="save">' + (isOff ? 'Save day off' : 'Save extra cover') + '</button></div>';
+      }
+    }
+    $('scForm').innerHTML = html;
+  }
+
+  /** What the day will look like after the change. */
+  function preview(d, person, isOff) {
+    const short = TYPES.map(t => {
+      const c = d.counts[t.key];
+      const have = c.have + (t.key === person.type ? (isOff ? -1 : 1) : 0);
+      return have < c.need ? t.emoji + ' ' + count(c.need - have, t) : '';
+    }).filter(Boolean);
+    const day = DAY[dayIndex(d.date)];
+    const what = isOff && person.status === 'extra' ? 'This cancels ' + person.name + "'s extra cover. " : '';
+    return '<div class="sc-preview ' + (short.length ? 'bad' : 'ok') + '">' + esc(what)
+      + (short.length ? '✗ ' + day + ' will be short: ' + esc(short.join(', ')) : '✓ ' + day + ' will be fully covered') + '</div>';
+  }
+
+  async function saveChange() {
+    const f = S.form;
+    const btn = document.querySelector('#scForm .sc-save');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      if (S.mode === 'off') await call('setDayOff', f.date, f.name, f.reason);
+      else await call('addExtra', f.date, f.name);
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Try again';
+      return fail(err);
+    }
+    // Back to the calendar on the changed day, so the result can be seen.
+    delete S.weeks[f.monday];
+    S.monday = f.monday;
+    S.flash = f.date;
+    S.note = '✔ Saved: ' + f.name + (S.mode === 'off' ? ' is off on ' : ' is coming in on ') + longDay(f.date) + '.';
+    S.mode = null;
+    S.form = null;
+    showView('calendar');
+  }
+
+  function renderList() {
+    const w = S.weeks[S.form.monday];
+    if (!w) return;
+    const items = [];
+    w.days.forEach(d => {
+      d.off.forEach(o => items.push({ d, p: o, icon: '🏖️', what: 'Off' + (o.reason ? ' · ' + o.reason : ''), undo: 'day off' }));
+      d.people.filter(p => p.status === 'extra').forEach(p => items.push({ d, p, icon: '➕', what: 'Extra cover', undo: 'extra cover' }));
+    });
+    $('scList').innerHTML = '<h3>Changes for ' + esc(weekLabel(w.monday)) + '</h3>'
+      + (items.length ? '<div class="sc-list">' + items.map(x =>
+        '<div class="sc-change"><span class="when">' + x.icon + ' ' + esc(DAY3[dayIndex(x.d.date)] + ' ' + shortDate(x.d.date)) + '</span>'
+        + '<span class="sc-chip t-' + x.p.type + '">' + TYPE[x.p.type].emoji + ' ' + esc(x.p.name) + '</span>'
+        + '<span>' + esc(x.what) + '</span>'
+        + '<button data-undo-date="' + x.d.date + '" data-undo-name="' + esc(x.p.name) + '" data-undo-what="' + x.undo + '">Undo</button></div>').join('') + '</div>'
+        : '<p class="sc-hint">No changes this week. It is the usual week.</p>');
+  }
+
+  $('scList').addEventListener('click', async e => {
+    const b = e.target.closest('button[data-undo-date]');
+    if (!b) return;
+    const { undoDate: date, undoName: name, undoWhat: what } = b.dataset;
+    if (!confirm('Undo ' + name + "'s " + what + ' on ' + longDay(date) + '?')) return;
+    b.disabled = true;
+    try {
+      await call('removeChange', date, name);
+      await week(S.form.monday, true);
+    } catch (err) { b.disabled = false; return fail(err); }
+    msg('✔ Undone. ' + longDay(date) + ' is back to the usual week for ' + name + '.');
+    renderChanges();
+  });
+
+  // ------------------------------------------------------------------------
+  // 🔁 Usual week: the team, who works which weekdays, and the minimum per day
+
+  function startUsual() {
+    const w = S.weeks[S.form.monday];
+    S.draft = {
+      staff: w.staff.map(s => ({ id: nextId++, name: s.name, was: s.name, type: s.type, active: s.active, days: s.days.slice() })),
+      needed: JSON.parse(JSON.stringify(w.needed)),
+      adding: -1,
+      dirty: false,
+    };
+    renderChanges();
+  }
+
+  /** Asks before throwing away unsaved changes to the usual week. Returns false to stay. */
+  function leaveDraft() {
+    if (S.draft && S.draft.dirty && !confirm('Leave without saving the usual week?')) return false;
+    S.draft = null;
+    if (S.mode === 'usual') S.mode = null;
+    return true;
+  }
+
+  function renderUsual() {
+    const dr = S.draft;
+    if (!dr) return;
+    const on = i => dr.staff.filter(s => s.active && TYPE[s.type] && s.days[i]);
+    const person = s => '<div class="sc-person' + (s.type ? ' t-' + s.type : '') + (s.active ? '' : ' paused') + '">'
+      + '<input data-id="' + s.id + '" value="' + esc(s.name) + '" placeholder="Name" autocomplete="off">'
+      + '<div class="sc-types">' + TYPES.map(t => '<button class="t-' + t.key + (s.type === t.key ? ' on' : '') + '" data-act="type" data-id="' + s.id + '" data-type="' + t.key + '">'
+        + t.emoji + ' ' + t.label + '</button>').join('') + '</div>'
+      + '<div class="sc-prow"><button data-act="pause" data-id="' + s.id + '">' + (s.active ? '⏸ Away for a while' : '▶ Back on the schedule') + '</button>'
+      + '<button data-act="remove" data-id="' + s.id + '">✕ Remove</button></div></div>';
+
+    const day = (name, i) => {
+      const people = on(i);
+      const needs = TYPES.map(t => {
+        const need = dr.needed[t.key][i];
+        const have = people.filter(s => s.type === t.key).length;
+        return '<div class="sc-need t-' + t.key + (have < need ? ' bad' : '') + '" title="' + t.label + '"><span class="e">' + t.emoji + '</span>'
+          + '<button data-act="dec" data-day="' + i + '" data-type="' + t.key + '" aria-label="Fewer ' + t.many + '">−</button><b>' + need + '</b>'
+          + '<button data-act="inc" data-day="' + i + '" data-type="' + t.key + '" aria-label="More ' + t.many + '">+</button>'
+          + '<span class="mark">' + (have < need ? '✗ ' + (need - have) + ' short' : '✓') + '</span></div>';
+      }).join('');
+      const ok = TYPES.every(t => people.filter(s => s.type === t.key).length >= dr.needed[t.key][i]);
+      const free = dr.staff.filter(s => s.active && TYPE[s.type] && !s.days[i]);
+      return '<div class="sc-day' + (ok ? '' : ' short') + '"><div class="sc-dayhead"><div class="sc-dow">' + name + '</div>'
+        + (ok ? '<span class="sc-pill ok">✓ Covered</span>' : '<span class="sc-pill bad">✗ Short</span>') + '</div>'
+        + '<div class="sc-mintitle">Minimum needed</div>' + needs
+        + '<div class="sc-chips">' + (people.length ? people.map(s => '<span class="sc-chip t-' + s.type + '">' + TYPE[s.type].emoji
+          + ' <span class="nm" data-id="' + s.id + '">' + esc(s.name || '(no name)') + '</span>'
+          + '<button class="x" data-act="unset" data-id="' + s.id + '" data-day="' + i + '" aria-label="Take off this day">×</button></span>').join('')
+          : '<span class="sc-empty">No one</span>') + '</div>'
+        + (dr.adding === i ? (free.length ? '<div class="sc-adding">' + free.map(s => '<button class="sc-chip t-' + s.type + '" data-act="set" data-id="' + s.id + '" data-day="' + i + '">'
+            + TYPE[s.type].emoji + ' <span class="nm" data-id="' + s.id + '">' + esc(s.name || '(no name)') + '</span></button>').join('') + '</div>'
+            : '<span class="sc-empty">Everyone is already on ' + name + '.</span>')
+          : '<button class="sc-add" data-act="adding" data-day="' + i + '">+ Add person</button>')
+        + (i > 0 ? '<button class="sc-copy" data-act="copy" data-day="' + i + '">Same people as Monday</button>' : '')
+        + '</div>';
+    };
+
+    $('scForm').innerHTML = '<p class="sc-hint">This week repeats every week. Days off and extra cover go on top of it.</p>'
+      + '<h3>👥 Your team</h3><div class="sc-team">' + dr.staff.map(person).join('')
+      + '<button class="sc-newperson" data-act="new">+ Add person</button></div>'
+      + '<h3>📅 Who usually works each day</h3><div class="sc-week">' + DAY.map(day).join('') + '</div>'
+      + '<div class="sc-actions"><button class="sc-save" data-act="saveusual">Save usual week</button>'
+      + '<button class="sc-cancel" data-act="cancelusual">Cancel</button></div>';
+  }
+
+  async function saveUsual() {
+    const dr = S.draft;
+    const unnamed = dr.staff.some(s => !s.name.trim());
+    const untyped = dr.staff.find(s => s.name.trim() && !TYPE[s.type]);
+    if (unnamed) return msg('Every person needs a name. Type it in, or press ✕ Remove.', true);
+    if (untyped) return msg('Pick 👷 Full time, ⏰ Part time or 🚚 Driver for ' + untyped.name + '.', true);
+    const btn = document.querySelector('#scForm .sc-save');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      await call('saveUsualWeek', {
+        staff: dr.staff.map(s => ({ name: s.name.trim(), was: s.was, type: s.type, active: s.active, days: s.days })),
+        needed: dr.needed,
+      });
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Save usual week';
+      return fail(err);
+    }
+    S.weeks = {};
+    S.draft = null;
+    S.mode = null;
+    S.form = null;
+    S.note = '✔ Usual week saved.';
+    showView('calendar');
+  }
+
+  $('scForm').addEventListener('input', e => {
+    const id = Number(e.target.dataset.id);
+    const s = S.draft && S.draft.staff.find(x => x.id === id);
+    if (!s) return;
+    s.name = e.target.value;
+    S.draft.dirty = true;
+    // Update the names on the day cards without redrawing (keeps the cursor in the box).
+    document.querySelectorAll('#scForm .nm[data-id="' + id + '"]').forEach(n => { n.textContent = s.name || '(no name)'; });
+  });
+
+  $('scForm').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    const f = S.form;
+    // Day off / Extra cover form
+    if (b.dataset.wk) {
+      f.monday = addDays(f.monday, Number(b.dataset.wk));
+      f.date = null; f.name = null; f.reason = '';
+      return loadChanges();
+    }
+    if (b.dataset.date) { f.date = b.dataset.date; f.name = null; f.reason = ''; return renderForm(); }
+    if (b.dataset.name) { f.name = b.dataset.name; return renderForm(); }
+    if (b.dataset.reason) { f.reason = f.reason === b.dataset.reason ? '' : b.dataset.reason; return renderForm(); }
+    if (b.dataset.act === 'save') return saveChange();
+
+    // Usual week
+    const dr = S.draft;
+    if (!dr) return;
+    const act = b.dataset.act;
+    const s = dr.staff.find(x => x.id === Number(b.dataset.id));
+    const i = Number(b.dataset.day);
+    if (act === 'saveusual') return saveUsual();
+    if (act === 'cancelusual') { if (leaveDraft()) renderChanges(); return; }
+    if (act === 'remove' && !confirm('Remove ' + (s.name || 'this person') + ' from the team?')) return;
+    if (act === 'type') s.type = b.dataset.type;
+    else if (act === 'pause') s.active = !s.active;
+    else if (act === 'remove') dr.staff = dr.staff.filter(x => x !== s);
+    else if (act === 'new') dr.staff.push({ id: nextId++, name: '', was: '', type: '', active: true, days: DAY.map(() => false) });
+    else if (act === 'inc' || act === 'dec') {
+      const n = dr.needed[b.dataset.type];
+      n[i] = Math.max(0, Math.min(99, n[i] + (act === 'inc' ? 1 : -1)));
+    }
+    else if (act === 'adding') { dr.adding = i; return renderUsual(); }
+    else if (act === 'set') { s.days[i] = true; dr.adding = -1; }
+    else if (act === 'unset') s.days[i] = false;
+    else if (act === 'copy') dr.staff.forEach(x => { x.days[i] = x.days[0]; });
+    else return;
+    dr.dirty = true;
+    renderUsual();
+    if (act === 'new') { const inputs = document.querySelectorAll('#scForm .sc-person input'); inputs[inputs.length - 1].focus(); }
+  });
+
+  document.querySelector('.sc-views').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b || b.dataset.view === S.view) return;
+    if (b.dataset.view === 'changes') { S.mode = null; S.form = null; }
+    showView(b.dataset.view);
+  });
+
+  return {
+    open() { showView(S.view); },
+  };
+})();
+</script>

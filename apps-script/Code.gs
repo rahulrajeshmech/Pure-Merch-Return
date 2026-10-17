@@ -1,5 +1,5 @@
 /**
- * Parts Return Tool
+ * PureTech — Returns section
  *
  * A web page that searches Gmail for supplier invoices (PDFs) containing a
  * part number, lets the user pick one and records the return in this Google
@@ -23,23 +23,7 @@ const RETURN_HEADERS = ['Date Returned', 'Part Number', 'Invoice Number', 'Suppl
 const COL = { date: 1, part: 2, invoice: 3, supplier: 4, key: 9 };
 
 // ---------------------------------------------------------------------------
-// Web app
-
-function doGet() {
-  // First time the page is opened: create the tabs.
-  if (!ss_().getSheetByName(RETURNS)) setup();
-  return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('Parts Returns')
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
-}
-
-function getConfig() {
-  const ss = ss_();
-  return {
-    sheetUrl: ss.getUrl(),
-    excelUrl: 'https://docs.google.com/spreadsheets/d/' + ss.getId() + '/export?format=xlsx',
-  };
-}
+// Called from the page
 
 /**
  * Finds PDF attachments in emails matching the part number, newest first, until
@@ -165,13 +149,9 @@ function undoReturn(item, part, invoice) {
 }
 
 // ---------------------------------------------------------------------------
-// One-time setup. Runs by itself the first time the page is opened; can also be
-// run from the Apps Script editor.
+// Sheet tabs for this section (called from setup() in Main.gs)
 
-function setup() {
-  const ss = ss_();
-  PropertiesService.getScriptProperties().setProperty('SHEET_ID', ss.getId());
-
+function setupReturns_(ss) {
   let sh = ss.getSheetByName(RETURNS) || ss.insertSheet(RETURNS, 0);
   sh.getRange(1, 1, 1, RETURN_HEADERS.length).setValues([RETURN_HEADERS])
     .setFontWeight('bold').setBackground('#1d7a3a').setFontColor('#ffffff');
@@ -190,33 +170,12 @@ function setup() {
   cache.getRange(1, 1, 1, 3).setValues([['Key', 'Invoice', 'Text']]);
   cache.hideSheet();
 
-  // Remove the default empty "Sheet1" if it is still there.
-  const blank = ss.getSheetByName('Sheet1');
-  if (blank && blank.getLastRow() === 0) ss.deleteSheet(blank);
-
-  Logger.log('Setup done.');
+  sh.setTabColor('#1d7a3a');
+  ss.getSheetByName(BY_INVOICE).setTabColor('#1d7a3a');
 }
 
 // ---------------------------------------------------------------------------
 // Helpers
-
-function ss_() {
-  const id = PropertiesService.getScriptProperties().getProperty('SHEET_ID');
-  const ss = id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActiveSpreadsheet();
-  if (!ss) throw new Error('Open the Apps Script editor from the sheet (Extensions → Apps Script) and paste the code there.');
-  return ss;
-}
-
-function sheet_(name) {
-  const sh = ss_().getSheetByName(name);
-  if (!sh) throw new Error('Tab "' + name + '" is missing. Reload the page to recreate it.');
-  return sh;
-}
-
-/** Spacing, dashes and case are ignored when comparing part/invoice numbers. */
-function norm_(s) {
-  return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-}
 
 function isPdf_(att) {
   return att.getContentType() === 'application/pdf' || /\.pdf$/i.test(att.getName());

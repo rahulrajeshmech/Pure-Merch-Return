@@ -1,16 +1,36 @@
-# Pure-Merch-Return
+# PureTech (repo: Pure-Merch-Return)
 
-Google Apps Script web app for an auto-parts warehouse. The user types a part number, the tool
-searches their Gmail for supplier invoice PDFs containing it, they pick one, press RETURN, and the
-return is logged in a Google Sheet. The person using it daily is not technical: keep the UI to big
-text, few choices, plain words. Never add steps or settings to their screen without asking.
+Google Apps Script web app for an auto-parts warehouse, called **PureTech**: one web app and one
+Google Sheet (also named PureTech) with two sections:
+
+- **Returns**: the user types a part number, the tool searches the shared Gmail for supplier invoice
+  PDFs containing it, they pick one, press RETURN, and the return is logged in the Sheet.
+- **Scheduling**: a weekly staff calendar (Full time 👷 / Part time ⏰ / Driver 🚚) with a minimum of
+  each kind per weekday, a repeating usual week, and dated days off / extra cover on top.
+
+Everyone uses one shared PC and Google account; there are no logins or edit protection. The people
+using it are not technical: keep the UI to big text, few choices, plain words. Never add steps or
+settings to their screen without asking. The schedule must look like a calendar (day cards, coloured
+emoji tags), never like a spreadsheet grid.
 
 ## Files
 
-- `apps-script/Code.gs` — server: Gmail search (`searchPart`, `partQuery_`), PDF reading via Drive OCR
-  (`readInvoice`, `pdfText_`, `guessInvoice_`), saving/undo (`recordReturn`, `undoReturn`), sheet layout
-  (`setup`, `rebuildByInvoice_`).
-- `apps-script/Index.html` — the whole page (HTML/CSS/JS, talks to the server via `google.script.run`).
+Apps Script `.gs` files share one global scope. Script and HTML files must not share a name.
+
+- `apps-script/Main.gs` — `doGet` (template page; `?section=scheduling` opens Scheduling), `include_`,
+  `getConfig`, `setup` (renames the sheet to PureTech, calls each section's setup), shared helpers
+  `ss_`, `sheet_`, `norm_`.
+- `apps-script/Code.gs` — Returns server: Gmail search (`searchPart`, `partQuery_`), PDF reading via
+  Drive OCR (`readInvoice`, `pdfText_`, `guessInvoice_`), saving/undo (`recordReturn`, `undoReturn`),
+  tabs (`setupReturns_`, `rebuildByInvoice_`).
+- `apps-script/Schedule.gs` — Scheduling server: `getWeek`, `setDayOff`, `addExtra`, `removeChange`,
+  `saveUsualWeek`; pure `buildWeek_` (no Google calls) works out each day; `setupSchedule_`.
+- `apps-script/Index.html` — page shell: PureTech bar, section buttons, shared CSS and the `$`, `esc`,
+  `call` helpers; pastes in the two section files with `<?!= include_('…') ?>`.
+- `apps-script/ReturnsPage.html` — Returns section (CSS scoped under `.returns`).
+- `apps-script/SchedulePage.html` — Scheduling section (CSS under `.scheduling`, classes `sc-*`, JS
+  wrapped in the `Scheduling` module so its names don't clash with the Returns script). Emoji and
+  colours per worker type are in `TYPES` at the top of the script.
 - `apps-script/appsscript.json` — manifest (Gmail + Drive advanced services, web app settings).
 - `README.md` — setup and usage instructions for the owner. Keep it in sync with behaviour changes.
 
@@ -20,16 +40,23 @@ text, few choices, plain words. Never add steps or settings to their screen with
 - Shows up to `SHOW_INVOICES` (15) invoices where the part has NOT been returned.
 - A return is keyed by `normalisedPart|gmailMessageId:attachmentIndex` (hidden column I of Returns).
 - Sheet tabs: `Returns` (one row per return, newest first), `By Invoice` (rebuilt after every change),
-  `_pdf_cache` (hidden OCR cache).
+  `_pdf_cache` (hidden OCR cache); then `Schedule · Staff`, `Schedule · Base Week`, `Schedule · Needed`,
+  `Schedule · Changes`. `doGet` runs `setup` if any of these is missing.
+- Scheduling: people are matched by `norm_(name)`. A day's workers = usual week + Extra − Off (a day
+  off wins). Dates are `yyyy-mm-dd` strings worked out in UTC. Renaming someone in the usual week
+  renames their rows in Changes. Calendar is view-only; all input is in Make changes.
 
 ## Testing locally (no Google account needed)
 
-- Server helpers: load `Code.gs` in Node with `vm.runInContext` and stub `SpreadsheetApp`,
-  `PropertiesService`, `LockService` as needed; call the pure functions (`guessInvoice_`,
-  `partQuery_`, `findLine_`, `undoReturn` with a fake sheet).
-- Page: inject a fake `google.script.run` (a Proxy returning canned data) before the page script and
-  drive it with Playwright.
-- `node --check` on a `.js` copy of `Code.gs` for syntax.
+- Server: load `Main.gs` + `Code.gs` + `Schedule.gs` together in Node with `vm.runInContext` and stub
+  `SpreadsheetApp`, `PropertiesService`, `LockService`, `Utilities` as needed; call the pure functions
+  (`guessInvoice_`, `partQuery_`, `findLine_`, `buildWeek_`) and the schedule functions against fake
+  sheets. Values crossing the vm boundary (arrays, Dates) are from another realm: compare via JSON and
+  create Dates inside the context.
+- Page: build `Index.html` as Apps Script would (replace `<?= section ?>` and the `include_` lines with
+  the files), inject a fake `google.script.run` (a Proxy) before the first script, and drive it with
+  Playwright. Bridging the fake to the vm context with `page.exposeFunction` tests page and server together.
+- `node --check` on `.js` copies of the `.gs` files for syntax.
 
 ## Getting changes into Google (manual, by the owner)
 
@@ -41,9 +68,11 @@ After every change:
 
 1. Run the local tests above.
 2. Commit and push, so the owner can also copy the files from GitHub.
-3. Tell the owner, in plain words, **which files changed** (`Code.gs`, `Index.html`,
-   `appsscript.json`) and give these steps:
-   1. Open the Parts Returns Google Sheet → **Extensions → Apps Script**.
+3. Tell the owner, in plain words, **which files changed** (any of `Main.gs`, `Code.gs`, `Schedule.gs`,
+   `Index.html`, `ReturnsPage.html`, `SchedulePage.html`, `appsscript.json`) and which are **new** (they
+   must be created first with **+ → Script** or **+ → HTML**, named without the extension), and give
+   these steps:
+   1. Open the PureTech Google Sheet → **Extensions → Apps Script**.
    2. For each changed file: click it on the left, **Ctrl + A**, **Delete**, paste the new version,
       **Ctrl + S**.
    3. **Deploy → Manage deployments → pencil ✎ → Version: New version → Deploy**.
