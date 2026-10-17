@@ -14,6 +14,13 @@ twice against the same invoice. Other parts on that invoice are not affected.
 The code is in [`apps-script/`](apps-script). It runs inside your own Google account: no server,
 no cost, and your email never leaves Google.
 
+## How it works
+
+![How the parts returns tool works](diagrams/parts-returns-architecture.svg)
+
+For a version you can zoom and click, download
+[`diagrams/parts-returns-architecture.html`](diagrams/parts-returns-architecture.html) and open it in Chrome.
+
 ## The spreadsheet
 
 - **Returns**: one row per return with date returned, part number, invoice number, supplier,
