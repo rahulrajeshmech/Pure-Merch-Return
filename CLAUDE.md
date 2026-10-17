@@ -31,13 +31,22 @@ text, few choices, plain words. Never add steps or settings to their screen with
   drive it with Playwright.
 - `node --check` on a `.js` copy of `Code.gs` for syntax.
 
-## Uploading to Google (clasp)
+## Getting changes into Google (manual, by the owner)
 
-The Apps Script project is bound to the owner's "Parts Returns" sheet. With clasp set up
-(`apps-script/.clasp.json` holds the script ID, created by `clasp clone`/manually):
+This repo is NOT linked to any Google account, and must not be: do not set up clasp, Google sign-in
+or any other connection to the owner's Google account. The owner copies the code across by hand.
 
-1. `cd apps-script && npx @google/clasp push` — uploads the code (answer yes to overwrite the manifest).
-2. `npx @google/clasp deployments` — find the web app deployment ID (not the `@HEAD` one).
-3. `npx @google/clasp deploy -i <deploymentId> -d "<what changed>"` — publishes it at the same URL.
+After every change:
 
-Always run the local tests before pushing, and tell the owner to reload the tool afterwards.
+1. Run the local tests above.
+2. Commit and push, so the owner can also copy the files from GitHub.
+3. Tell the owner, in plain words, **which files changed** (`Code.gs`, `Index.html`,
+   `appsscript.json`) and give these steps:
+   1. Open the Parts Returns Google Sheet → **Extensions → Apps Script**.
+   2. For each changed file: click it on the left, **Ctrl + A**, **Delete**, paste the new version,
+      **Ctrl + S**.
+   3. **Deploy → Manage deployments → pencil ✎ → Version: New version → Deploy**.
+   4. Reload the tool in Chrome.
+   Offer to print a changed file's full contents so they can copy it straight from the terminal.
+
+The owner is not technical: one action per step, no jargon.
