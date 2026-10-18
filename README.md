@@ -74,6 +74,11 @@ To see the page and try changes before copying anything into Google:
 3. What you do in the preview is remembered in that browser. **Reset demo data** (top right) starts again.
 4. After changing any file in `apps-script/`, run step 1 again and reload the page.
 
+The same demo can be published as a web page to look at from any device:
+`node tools/preview.mjs --artifact` builds `preview/PureTech-demo.html` for that. On the published page,
+add `#scheduling` to the end of the link to open on Scheduling. Confirmation questions (Undo, Remove) are
+answered "yes" automatically there, because published pages cannot show them.
+
 ## The spreadsheet
 
 The sheet is called **PureTech**. Its tabs are coloured by section: green for Returns, blue for Scheduling.

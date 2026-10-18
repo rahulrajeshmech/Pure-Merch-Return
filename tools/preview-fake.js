@@ -35,14 +35,14 @@
   }
 
   const DEMO_EMAILS = [
-    { id: 'm1', from: '"Repco Trade" <invoices@repco.example>', subject: 'Tax Invoice INV-204518', file: 'INV-204518.pdf', daysAgo: 2,
-      text: 'REPCO TRADE\nTax Invoice No: INV-204518\nCH-8115 Oil filter Ryco 2 @ 12.50\nBP-4471 Brake pads front 1 @ 89.00' },
-    { id: 'm2', from: '"Burson Auto Parts" <accounts@burson.example>', subject: 'Your invoice 77812', file: 'scan_0042.pdf', daysAgo: 9,
-      text: 'BURSON AUTO PARTS\nInvoice # 77812\nCH8115 OIL FILTER 4 @ 11.90\nWA-120 Wiper blade 2 @ 15.00' },
-    { id: 'm3', from: 'Supercheap Trade <trade@scauto.example>', subject: 'Invoice attached', file: 'Bill-B55310.pdf', daysAgo: 21,
-      text: 'SUPERCHEAP AUTO\nBill No: B55310\nBP 4471 Brake pad set 2 @ 84.00\nSP-9 Spark plug 8 @ 7.20' },
-    { id: 'm4', from: '"Repco Trade" <invoices@repco.example>', subject: 'Tax Invoice INV-199870', file: 'INV-199870.pdf', daysAgo: 40,
-      text: 'REPCO TRADE\nTax Invoice No: INV-199870\nCH-8115 Oil filter Ryco 6 @ 12.50\nAF-301 Air filter 1 @ 24.00' },
+    { id: 'm1', from: '"Northside Parts Co" <invoices@northside.example>', subject: 'Tax Invoice INV-204518', file: 'INV-204518.pdf', daysAgo: 2,
+      text: 'NORTHSIDE PARTS CO\nTax Invoice No: INV-204518\nCH-8115 Oil filter 2 @ 12.50\nBP-4471 Brake pads front 1 @ 89.00' },
+    { id: 'm2', from: '"Coastal Auto Supply" <accounts@coastal.example>', subject: 'Your invoice 77812', file: 'scan_0042.pdf', daysAgo: 9,
+      text: 'COASTAL AUTO SUPPLY\nInvoice # 77812\nCH8115 OIL FILTER 4 @ 11.90\nWA-120 Wiper blade 2 @ 15.00' },
+    { id: 'm3', from: 'Metro Trade Spares <trade@metro.example>', subject: 'Invoice attached', file: 'Bill-B55310.pdf', daysAgo: 21,
+      text: 'METRO TRADE SPARES\nBill No: B55310\nBP 4471 Brake pad set 2 @ 84.00\nSP-9 Spark plug 8 @ 7.20' },
+    { id: 'm4', from: '"Northside Parts Co" <invoices@northside.example>', subject: 'Tax Invoice INV-199870', file: 'INV-199870.pdf', daysAgo: 40,
+      text: 'NORTHSIDE PARTS CO\nTax Invoice No: INV-199870\nCH-8115 Oil filter 6 @ 12.50\nAF-301 Air filter 1 @ 24.00' },
   ];
 
   // ---- pretend spreadsheet ---------------------------------------------------

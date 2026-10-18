@@ -28,7 +28,23 @@ let page = src('Index.html')
 if (page.includes('<?')) throw new Error('Index.html has a <? ?> tag the preview does not know how to fill in.');
 page = page.replace('<script>', () => '<script>\n' + fake + '\n</script>\n<script>');
 
-const out = join(root, 'preview', 'PureTech-preview.html');
+// --artifact: a version for publishing as a claude.ai page. That page supplies its own
+// <html>/<head>/<body>, opens Scheduling with #scheduling (no query string reaches it),
+// and never shows confirm() boxes, so they are answered "yes" (it is all demo data).
+const artifact = process.argv.includes('--artifact');
+if (artifact) {
+  page = page
+    .replace(/^<!doctype html>\s*<html>\s*<head>\s*/i, () => '<title>PureTech Demo</title>\n'
+      + '<script>window.confirm = () => true; window.alert = m => console.warn(m);</script>\n')
+    .replace(/<\/head>\s*<body data-section="returns">\s*<script>[^<]*<\/script>/, () =>
+      "<script>document.body.dataset.section = location.hash === '#scheduling' ? 'scheduling' : 'returns';</script>")
+    .replace(/<\/body>\s*<\/html>\s*$/, '')
+    .replace('<header class="appbar">', '<style>.appbar .links { display: none; } body { background: var(--bg); }</style>\n<header class="appbar">')
+    .replace('Parts to try in Returns: CH8115, BP4471.', 'Parts to try in Returns: CH8115, BP4471. Add #scheduling to the link to open on Scheduling.');
+  if (/<\/?(html|head|body)\b/i.test(page)) throw new Error('Could not strip the page wrapper for the artifact build.');
+}
+
+const out = join(root, 'preview', artifact ? 'PureTech-demo.html' : 'PureTech-preview.html');
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, page);
 console.log('Preview written to ' + out);
