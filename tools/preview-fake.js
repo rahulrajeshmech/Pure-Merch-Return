@@ -4,7 +4,7 @@
 // on pretend sheets; Gmail and the PDFs are replaced by a few demo invoices.
 // Changes are kept in this browser until "Reset demo data" is pressed.
 (function () {
-  const STORE = 'puretech-preview-v1';
+  const STORE = 'puretech-preview-v2';
   const pad = n => String(n).padStart(2, '0');
   const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -22,8 +22,10 @@
       ['Sam', 'Driver', [0, 1, 2, 3, 4]], ['Tom', 'Driver', [2, 3, 4, 5]],
     ];
     return {
-      'Returns': [['Date Returned', 'Part Number', 'Invoice Number', 'Supplier', 'Email Date', 'Email Subject', 'PDF File', 'Email', 'Key']],
+      'Returns': [['Date Returned', 'Pallet', 'Part Number', 'Quantity', 'Invoice Number', 'Email Date', 'PDF File', 'Email', 'Key']],
+      'By Pallet': [[]],
       'By Invoice': [[]],
+      '_pallets': [['Pallet', 'Started', 'Finished'], [1, today, '']],
       '_pdf_cache': [['Key', 'Invoice', 'Text']],
       'Schedule · Staff': [['Name', 'Type', 'Active']].concat(people.map(p => [p[0], p[1], true])),
       'Schedule · Base Week': [['Name', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']].concat(people.map(p => [p[0]].concat(week(p[2])))),
@@ -35,6 +37,10 @@
   }
 
   const DEMO_EMAILS = [
+    // Laid out like a real Vast-Auto invoice: UNIT, ORDERED, SHIPPED, B/O, then prices.
+    { id: 'm5', from: '"Eastway Auto Distribution" <invoices@eastway.example>', subject: 'Invoice 31CX9012', file: 'INV_31CX9012.pdf', daysAgo: 1,
+      text: 'EASTWAY AUTO DISTRIBUTION\nINVOICE\nNo. 31CX9012\nITEM DESCRIPTION UNIT ORDERED SHIPPED B/O PRICE NET PRICE NET CORE EXT PRICE\n'
+        + 'SPI F44B FUEL TANK EA 1 1 0 420.28 271.84 0.00 271.84\nFRA CH8115 OIL FILTER EA 6 4 2 14.20 9.10 0.00 36.40' },
     { id: 'm1', from: '"Northside Parts Co" <invoices@northside.example>', subject: 'Tax Invoice INV-204518', file: 'INV-204518.pdf', daysAgo: 2,
       text: 'NORTHSIDE PARTS CO\nTax Invoice No: INV-204518\nCH-8115 Oil filter 2 @ 12.50\nBP-4471 Brake pads front 1 @ 89.00' },
     { id: 'm2', from: '"Coastal Auto Supply" <accounts@coastal.example>', subject: 'Your invoice 77812', file: 'scan_0042.pdf', daysAgo: 9,
@@ -94,6 +100,11 @@
         rows().splice(r - 1, nr, ...part);
         return this;
       },
+      getValue() { return this.getValues()[0][0]; },
+      setValue(v) { return this.setValues([[v]]); },
+      getFormulas() {
+        return this.getValues().map(row => row.map(x => typeof x === 'string' && x[0] === '=' ? x : ''));
+      },
       setFormula(f) { rows()[r - 1][c - 1] = f; return this; },
     });
   }
@@ -144,7 +155,7 @@
         dateText: Utilities.formatDate(date, '', 'd MMM yyyy') };
     }
     return {
-      getConfig, recordReturn, undoReturn, getWeek, setDayOff, addExtra, removeChange, saveMasterSchedule,
+      getConfig, recordReturn, undoReturn, getPallets, getPallet, newPallet, reopenPallet, moveToPallet, getWeek, setDayOff, addExtra, removeChange, saveMasterSchedule,
       searchPart(part) {
         part = String(part || '').trim();
         const out = { items: [], returned: [], returnedInvoices: [], show: SHOW_INVOICES };
@@ -155,6 +166,7 @@
           const item = demoItem(m);
           item.returnedOn = done.keys[item.key] ? done.keys[item.key].when : '';
           item.returnedInvoice = done.keys[item.key] ? done.keys[item.key].invoice : '';
+          item.returnedQty = done.keys[item.key] ? done.keys[item.key].qty : 0;
           (item.returnedOn ? out.returned : out.items).push(item);
         });
         return out;
@@ -162,7 +174,7 @@
       readInvoice(item, part) {
         const m = DEMO_EMAILS.find(x => x.id === item.messageId);
         return { invoice: guessInvoice_(m.text, item.subject, item.fileName),
-          found: norm_(m.text).indexOf(norm_(part)) !== -1, line: findLine_(m.text, part) };
+          found: norm_(m.text).indexOf(norm_(part)) !== -1, line: findLine_(m.text, part), shipped: guessQty_(m.text, part) };
       },
     };
   })(google.SpreadsheetApp, google.PropertiesService, google.LockService, google.Utilities, google.Logger);

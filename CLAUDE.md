@@ -28,9 +28,11 @@ one global scope. Script and HTML files must not share a name.
   `call` helpers; pastes in the two section files with `<?!= include_('…') ?>`.
 - `app/appsscript.json` — manifest (Gmail + Drive advanced services, web app settings).
 - `returns/Returns.gs` (was `Code.gs`) — Returns server: Gmail search (`searchPart`, `partQuery_`), PDF
-  reading via Drive OCR (`readInvoice`, `pdfText_`, `guessInvoice_`), saving/undo (`recordReturn`,
-  `undoReturn`), tabs (`setupReturns_`, `rebuildByInvoice_`).
-- `returns/ReturnsPage.html` — Returns section (CSS scoped under `.returns`).
+  reading via Drive OCR (`readInvoice`, `pdfText_`, `guessInvoice_`, `guessQty_`), saving/undo (`recordReturn`,
+  `undoReturn`), pallets (`getPallets`, `getPallet`, `newPallet`, `reopenPallet`, `moveToPallet`), tabs
+  (`setupReturns_`, `moveToPalletLayout_`, `rebuildByPallet_`, `rebuildByInvoice_`).
+- `returns/ReturnsPage.html` — Returns section (CSS scoped under `.returns`): pallet bar, search, invoice cards
+  with the quantity picker, done screen, pallets view.
 - `scheduling/Schedule.gs` — Scheduling server: `getWeek`, `setDayOff`, `addExtra`, `removeChange`,
   `saveMasterSchedule`; pure `buildWeek_` (no Google calls) works out each day; `setupSchedule_`.
 - `scheduling/SchedulePage.html` — Scheduling section (CSS under `.scheduling`, classes `sc-*`, JS
@@ -44,11 +46,18 @@ one global scope. Script and HTML files must not share a name.
 ## Key behaviour
 
 - Part and invoice numbers are compared with `norm_` (uppercase, letters/digits only).
-- Shows up to `SHOW_INVOICES` (15) invoices where the part has NOT been returned.
-- A return is keyed by `normalisedPart|gmailMessageId:attachmentIndex` (hidden column I of Returns).
-- Sheet tabs: `Returns` (one row per return, newest first), `By Invoice` (rebuilt after every change),
-  `_pdf_cache` (hidden OCR cache); then `Schedule · Staff`, `Schedule · Base Week`, `Schedule · Needed`,
-  `Schedule · Changes`. `doGet` runs `setup` if any of these is missing.
+- Shows up to `SHOW_INVOICES` (15) invoices where some of the part can still be returned. Shipped quantity
+  comes from `guessQty_` (Vast-Auto lines `… EA ORDERED SHIPPED B/O price` take SHIPPED; else the first whole
+  number after the part), or is typed in on the page; an invoice is used up when returned ≥ shipped.
+- Returns columns: Date Returned, Pallet, Part Number, Quantity, Invoice Number, Email Date, PDF File, Email, Key.
+  A return is keyed by `normalisedPart|gmailMessageId:attachmentIndex` (hidden column I); the key repeats when
+  more is returned later, so one row is identified by `rowId_` (key + `|` + date in ms).
+- Pallets: `_pallets` (hidden) holds `Pallet | Started | Finished`; an empty Finished is the open pallet (only one).
+  New returns go on the open pallet. `setupReturns_` rewrites a pre-pallet Returns tab (B1 = `Part Number`)
+  into the new layout with Pallet 1 / Quantity 1.
+- Sheet tabs: `Returns` (one row per return, newest first), `By Pallet` and `By Invoice` (rebuilt after every
+  change by `rebuildAll_`), `_pallets`, `_pdf_cache` (hidden OCR cache); then `Schedule · Staff`, `Schedule · Base Week`, `Schedule · Needed`,
+  `Schedule · Changes`. `doGet` runs `setup` if `Returns`, `By Pallet` or `Schedule · Staff` is missing.
 - Scheduling: people are matched by `norm_(name)`. A day's workers = master schedule + Extra − Off (a day
   off wins). Dates are `yyyy-mm-dd` strings worked out in UTC. Renaming someone in Master scheduling
   renames their rows in Changes. Calendar is view-only; all input is in Make changes.

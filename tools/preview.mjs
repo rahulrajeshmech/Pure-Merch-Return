@@ -25,7 +25,7 @@ const server = ['Main.gs', 'Returns.gs', 'Schedule.gs'].map(src).join('\n');
 const fake = readFileSync(join(root, 'tools', 'preview-fake.js'), 'utf8').replace('/* SERVER_CODE */', () => server);
 
 const banner = `<div style="background:#fff4d6;color:#5c3d00;font:15px/1.4 system-ui,sans-serif;padding:6px 16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-  <b>PREVIEW</b><span>Demo data only — nothing here reaches Google. Parts to try in Returns: CH8115, BP4471.</span>
+  <b>PREVIEW</b><span>Demo data only — nothing here reaches Google. Parts to try in Returns: CH8115, BP4471, F44B.</span>
   <button onclick="PureTechPreview.reset()" style="margin-left:auto;font:inherit;padding:2px 10px;border:1px solid #5c3d00;border-radius:6px;background:none;cursor:pointer">Reset demo data</button>
 </div>`;
 
@@ -49,7 +49,7 @@ if (artifact) {
       "<script>document.body.dataset.section = location.hash === '#scheduling' ? 'scheduling' : 'returns';</script>")
     .replace(/<\/body>\s*<\/html>\s*$/, '')
     .replace('<header class="appbar">', '<style>.appbar .links { display: none; } body { background: var(--bg); }</style>\n<header class="appbar">')
-    .replace('Parts to try in Returns: CH8115, BP4471.', 'Parts to try in Returns: CH8115, BP4471. Add #scheduling to the link to open on Scheduling.');
+    .replace('Parts to try in Returns: CH8115, BP4471, F44B.', 'Parts to try in Returns: CH8115, BP4471, F44B. Add #scheduling to the link to open on Scheduling.');
   if (/<\/?(html|head|body)\b/i.test(page)) throw new Error('Could not strip the page wrapper for the artifact build.');
 }
 

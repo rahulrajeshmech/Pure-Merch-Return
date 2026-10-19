@@ -14,8 +14,9 @@ const APP_NAME = 'PureTech';
 
 function doGet(e) {
   // First time the page is opened (or after an upgrade): create the missing tabs.
+  // The "By Pallet" check also moves returns saved before pallets onto Pallet 1.
   const ss = ss_();
-  if (!ss.getSheetByName(RETURNS) || !ss.getSheetByName(SCHED_STAFF)) setup();
+  if (!ss.getSheetByName(RETURNS) || !ss.getSheetByName(BY_PALLET) || !ss.getSheetByName(SCHED_STAFF)) setup();
   const page = HtmlService.createTemplateFromFile('Index');
   // ?section=scheduling opens the Scheduling section straight away.
   page.section = e && e.parameter && e.parameter.section === 'scheduling' ? 'scheduling' : 'returns';

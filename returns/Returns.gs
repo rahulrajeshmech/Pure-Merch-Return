@@ -15,12 +15,17 @@ const SPARE_INVOICES = 5;
 const MAX_EMAILS_SCANNED = 300;
 const SEARCH_EXTRA = 'has:attachment filename:pdf';
 
+// Most of one part that can be returned in one go.
+const MAX_QTY = 999;
+
 const RETURNS = 'Returns';
+const BY_PALLET = 'By Pallet';
 const BY_INVOICE = 'By Invoice';
+const PALLETS = '_pallets';
 const CACHE = '_pdf_cache';
-const RETURN_HEADERS = ['Date Returned', 'Part Number', 'Invoice Number', 'Supplier',
-  'Email Date', 'Email Subject', 'PDF File', 'Email', 'Key'];
-const COL = { date: 1, part: 2, invoice: 3, supplier: 4, key: 9 };
+const RETURN_HEADERS = ['Date Returned', 'Pallet', 'Part Number', 'Quantity', 'Invoice Number',
+  'Email Date', 'PDF File', 'Email', 'Key'];
+const COL = { date: 1, pallet: 2, part: 3, qty: 4, invoice: 5, email: 8, key: 9 };
 
 // ---------------------------------------------------------------------------
 // Called from the page
@@ -63,8 +68,9 @@ function searchPart(part) {
           subject: msg.getSubject(),
           dateIso: msg.getDate().toISOString(),
           dateText: Utilities.formatDate(msg.getDate(), tz, 'd MMM yyyy'),
-            returnedOn: done.keys[key] ? done.keys[key].when : '',
+          returnedOn: done.keys[key] ? done.keys[key].when : '',
           returnedInvoice: done.keys[key] ? done.keys[key].invoice : '',
+          returnedQty: done.keys[key] ? done.keys[key].qty : 0,
         };
         (item.returnedOn ? out.returned : out.items).push(item);
       });
@@ -73,7 +79,7 @@ function searchPart(part) {
   return out;
 }
 
-/** Reads one PDF and returns its guessed invoice number and the line with the part. */
+/** Reads one PDF: its guessed invoice number, the line with the part and how many were shipped. */
 function readInvoice(item, part) {
   let info = cacheGet_(item.key);
   if (!info) {
@@ -87,32 +93,38 @@ function readInvoice(item, part) {
     invoice: info.invoice,
     found: norm_(info.text).indexOf(norm_(part)) !== -1,
     line: findLine_(info.text, part),
+    shipped: guessQty_(info.text, part),
   };
 }
 
-/** Saves the return and rebuilds the "By Invoice" tab. */
-function recordReturn(item, part, invoice) {
+/** Saves the return on the open pallet and rebuilds the "By Pallet" and "By Invoice" tabs. */
+function recordReturn(item, part, invoice, qty) {
   part = String(part || '').trim().toUpperCase();
   invoice = String(invoice || '').trim().toUpperCase();
+  qty = Number(qty === undefined ? 1 : qty);
   if (!part || !invoice) throw new Error('Part number and invoice number are both needed.');
+  if (!(qty >= 1 && qty <= MAX_QTY && Math.floor(qty) === qty)) {
+    throw new Error('The quantity must be a whole number from 1 to ' + MAX_QTY + '.');
+  }
 
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
     const sh = sheet_(RETURNS);
+    const pallet = openPallet_();
     const link = 'https://mail.google.com/mail/u/0/#all/' + item.threadId;
-    sh.appendRow([new Date(), part, invoice, item.supplier, new Date(item.dateIso),
-      item.subject, item.fileName, '', norm_(part) + '|' + item.key]);
+    sh.appendRow([new Date(), pallet, part, qty, invoice, new Date(item.dateIso),
+      item.fileName, '', norm_(part) + '|' + item.key]);
     const row = sh.getLastRow();
-    sh.getRange(row, 8).setFormula('=HYPERLINK("' + link + '","Open")');
+    sh.getRange(row, COL.email).setFormula('=HYPERLINK("' + link + '","Open")');
     if (row > 2) {
       sh.getRange(2, 1, row - 1, RETURN_HEADERS.length).sort({ column: COL.date, ascending: false });
     }
-    rebuildByInvoice_();
+    rebuildAll_();
+    return { invoice: invoice, pallet: pallet, qty: qty };
   } finally {
     lock.releaseLock();
   }
-  return { invoice: invoice };
 }
 
 /**
@@ -141,8 +153,138 @@ function undoReturn(item, part, invoice) {
     });
     if (found === -1) throw new Error('That return was not found. It may already have been undone.');
     sh.deleteRow(found + 2);
-    rebuildByInvoice_();
+    rebuildAll_();
     return { invoice: String(rows[found][COL.invoice - 1]) };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Pallets. Returns are put on the open pallet; "_pallets" remembers each pallet's dates.
+
+/** All pallets, newest first: number, dates as text, open or finished, how many parts are on it. */
+function getPallets() {
+  const tz = ss_().getSpreadsheetTimeZone();
+  const day = function (d) { return d instanceof Date ? Utilities.formatDate(d, tz, 'd MMM yyyy') : String(d || ''); };
+  const qty = palletQty_();
+  return pallets_().reverse().map(function (p) {
+    return { number: p.number, started: day(p.started), finished: day(p.finished), open: !p.finished,
+      qty: qty[p.number] || 0 };
+  });
+}
+
+/** The returns on one pallet, newest first. */
+function getPallet(number) {
+  number = Number(number);
+  const tz = ss_().getSpreadsheetTimeZone();
+  return returnRows_().filter(function (r) { return Number(r[COL.pallet - 1]) === number; })
+    .map(function (r) {
+      return { id: rowId_(r), part: String(r[COL.part - 1]), qty: Number(r[COL.qty - 1]) || 1,
+        invoice: String(r[COL.invoice - 1]),
+        when: r[0] instanceof Date ? Utilities.formatDate(r[0], tz, 'd MMM yyyy') : String(r[0]) };
+    });
+}
+
+/** Finishes the open pallet and starts the next one. */
+function newPallet() {
+  return withLock_(function () {
+    const sh = sheet_(PALLETS);
+    const list = pallets_();
+    const open = list.filter(function (p) { return !p.finished; })[0];
+    if (open) {
+      if (!palletQty_()[open.number]) throw new Error('Pallet ' + open.number + ' is still empty.');
+      sh.getRange(open.row, 3).setValue(new Date());
+    }
+    const last = list.length ? list[list.length - 1].number : 0;
+    sh.appendRow([last + 1, new Date(), '']);
+    rebuildByPallet_();
+    return getPallets();
+  });
+}
+
+/** Puts new returns on an earlier pallet again. The pallet in use is finished, or removed if empty. */
+function reopenPallet(number) {
+  number = Number(number);
+  return withLock_(function () {
+    const sh = sheet_(PALLETS);
+    const list = pallets_();
+    const target = list.filter(function (p) { return p.number === number; })[0];
+    if (!target) throw new Error('Pallet ' + number + ' was not found.');
+    const open = list.filter(function (p) { return !p.finished; })[0];
+    if (open !== target) {
+      sh.getRange(target.row, 3).setValue('');
+      if (open && !palletQty_()[open.number]) sh.deleteRow(open.row);
+      else if (open) sh.getRange(open.row, 3).setValue(new Date());
+    }
+    rebuildByPallet_();
+    return getPallets();
+  });
+}
+
+/** Moves one return (by its id from getPallet) to another pallet. */
+function moveToPallet(id, number) {
+  number = Number(number);
+  return withLock_(function () {
+    if (!pallets_().some(function (p) { return p.number === number; })) {
+      throw new Error('Pallet ' + number + ' was not found.');
+    }
+    const rows = returnRows_();
+    for (let i = 0; i < rows.length; i++) {
+      if (rowId_(rows[i]) === id) {
+        sheet_(RETURNS).getRange(i + 2, COL.pallet).setValue(number);
+        rebuildByPallet_();
+        return getPallets();
+      }
+    }
+    throw new Error('That return was not found. It may have been undone.');
+  });
+}
+
+/** The number of the pallet returns go on now, starting Pallet 1 if there is none. */
+function openPallet_() {
+  const list = pallets_();
+  const open = list.filter(function (p) { return !p.finished; })[0];
+  if (open) return open.number;
+  const number = list.length ? list[list.length - 1].number + 1 : 1;
+  sheet_(PALLETS).appendRow([number, new Date(), '']);
+  return number;
+}
+
+/** Rows of the "_pallets" tab, lowest number first: {number, started, finished, row}. */
+function pallets_() {
+  const sh = sheet_(PALLETS);
+  if (sh.getLastRow() < 2) return [];
+  return sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues().map(function (r, i) {
+    return { number: Number(r[0]), started: r[1], finished: r[2], row: i + 2 };
+  }).filter(function (p) { return p.number; }).sort(function (a, b) { return a.number - b.number; });
+}
+
+/** How many parts are on each pallet: {number: total quantity}. */
+function palletQty_() {
+  const out = {};
+  returnRows_().forEach(function (r) {
+    const n = Number(r[COL.pallet - 1]);
+    if (n) out[n] = (out[n] || 0) + (Number(r[COL.qty - 1]) || 1);
+  });
+  return out;
+}
+
+function returnRows_() {
+  const sh = sheet_(RETURNS);
+  return sh.getLastRow() < 2 ? [] : sh.getRange(2, 1, sh.getLastRow() - 1, RETURN_HEADERS.length).getValues();
+}
+
+/** Identifies one row: the key repeats when more is returned later from the same invoice. */
+function rowId_(r) {
+  return r[COL.key - 1] + '|' + (r[0] instanceof Date ? r[0].getTime() : String(r[0]));
+}
+
+function withLock_(fn) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    return fn();
   } finally {
     lock.releaseLock();
   }
@@ -153,25 +295,68 @@ function undoReturn(item, part, invoice) {
 
 function setupReturns_(ss) {
   let sh = ss.getSheetByName(RETURNS) || ss.insertSheet(RETURNS, 0);
+  if (sh.getLastRow() > 0 && sh.getRange(1, 1, 1, 2).getValues()[0][1] === 'Part Number') moveToPalletLayout_(sh);
   sh.getRange(1, 1, 1, RETURN_HEADERS.length).setValues([RETURN_HEADERS])
     .setFontWeight('bold').setBackground('#1d7a3a').setFontColor('#ffffff');
   sh.setFrozenRows(1);
-  sh.getRange('A:A').setNumberFormat('d mmm yyyy, h:mm am/pm');
-  sh.getRange('E:E').setNumberFormat('d mmm yyyy');
-  sh.getRange('B:C').setNumberFormat('@');
-  [170, 140, 140, 200, 110, 300, 200, 70].forEach(function (w, i) { sh.setColumnWidth(i + 1, w); });
+  formatReturns_(sh);
+  [170, 70, 140, 80, 140, 110, 200, 70].forEach(function (w, i) { sh.setColumnWidth(i + 1, w); });
   sh.hideColumns(COL.key);
   if (!sh.getFilter()) sh.getRange(1, 1, sh.getMaxRows(), RETURN_HEADERS.length).createFilter();
 
-  if (!ss.getSheetByName(BY_INVOICE)) ss.insertSheet(BY_INVOICE, 1);
-  rebuildByInvoice_();
+  if (!ss.getSheetByName(PALLETS)) {
+    const p = ss.insertSheet(PALLETS);
+    p.getRange(1, 1, 1, 3).setValues([['Pallet', 'Started', 'Finished']]);
+    p.appendRow([1, oldestReturn_(sh) || new Date(), '']);
+    p.hideSheet();
+  }
+  if (!ss.getSheetByName(BY_PALLET)) ss.insertSheet(BY_PALLET, 1);
+  if (!ss.getSheetByName(BY_INVOICE)) ss.insertSheet(BY_INVOICE, 2);
+  rebuildAll_();
 
   const cache = ss.getSheetByName(CACHE) || ss.insertSheet(CACHE);
   cache.getRange(1, 1, 1, 3).setValues([['Key', 'Invoice', 'Text']]);
   cache.hideSheet();
 
   sh.setTabColor('#1d7a3a');
+  ss.getSheetByName(BY_PALLET).setTabColor('#1d7a3a');
   ss.getSheetByName(BY_INVOICE).setTabColor('#1d7a3a');
+}
+
+function formatReturns_(sh) {
+  sh.getRange('A:A').setNumberFormat('d mmm yyyy, h:mm am/pm');
+  sh.getRange('B:B').setNumberFormat('0');
+  sh.getRange('C:C').setNumberFormat('@');
+  sh.getRange('D:D').setNumberFormat('0');
+  sh.getRange('E:E').setNumberFormat('@');
+  sh.getRange('F:F').setNumberFormat('d mmm yyyy');
+}
+
+/**
+ * Before pallets the Returns tab was: Date Returned, Part Number, Invoice Number, Supplier,
+ * Email Date, Email Subject, PDF File, Email, Key. Rewrites it in the new layout: every
+ * return so far goes on Pallet 1 with quantity 1; supplier and subject are dropped.
+ */
+function moveToPalletLayout_(sh) {
+  if (sh.getFilter()) sh.getFilter().remove();
+  const n = sh.getLastRow() - 1;
+  if (n < 1) return;
+  const range = sh.getRange(2, 1, n, 9);
+  const old = range.getValues();
+  const formulas = range.getFormulas();
+  formatReturns_(sh);
+  range.setValues(old.map(function (r, i) {
+    return [r[0], 1, String(r[1]), 1, String(r[2]), r[4], r[6], formulas[i][7] || r[7], r[8]];
+  }));
+}
+
+function oldestReturn_(sh) {
+  let oldest = null;
+  if (sh.getLastRow() < 2) return oldest;
+  sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues().forEach(function (r) {
+    if (r[0] instanceof Date && (!oldest || r[0] < oldest)) oldest = r[0];
+  });
+  return oldest;
 }
 
 // ---------------------------------------------------------------------------
@@ -218,18 +403,23 @@ function partQuery_(part) {
   return terms.length > 1 ? '{' + terms.join(' ') + '}' : terms[0];
 }
 
-/** Already-returned PDFs and invoice numbers for this part. */
+/** Already-returned PDFs and invoice numbers for this part, with how many were returned in all. */
 function returnedFor_(part) {
-  const sh = sheet_(RETURNS);
   const out = { keys: {}, invoices: [] };
-  if (sh.getLastRow() < 2) return out;
   const p = norm_(part);
   const tz = ss_().getSpreadsheetTimeZone();
-  sh.getRange(2, 1, sh.getLastRow() - 1, RETURN_HEADERS.length).getValues().forEach(function (r) {
+  const byInvoice = {};
+  // Newest first, so `when` is the last time it was returned.
+  returnRows_().forEach(function (r) {
     if (norm_(r[COL.part - 1]) !== p) return;
     const when = r[0] instanceof Date ? Utilities.formatDate(r[0], tz, 'd MMM yyyy') : String(r[0]);
-    out.keys[String(r[COL.key - 1]).split('|')[1]] = { when: when, invoice: String(r[COL.invoice - 1]) };
-    out.invoices.push({ invoice: norm_(r[COL.invoice - 1]), when: when });
+    const qty = Number(r[COL.qty - 1]) || 1;
+    const k = String(r[COL.key - 1]).split('|')[1];
+    const byKey = out.keys[k] = out.keys[k] || { when: when, invoice: String(r[COL.invoice - 1]), qty: 0 };
+    byKey.qty += qty;
+    const i = norm_(r[COL.invoice - 1]);
+    if (!byInvoice[i]) out.invoices.push(byInvoice[i] = { invoice: i, when: when, qty: 0 });
+    byInvoice[i].qty += qty;
   });
   return out;
 }
@@ -287,6 +477,29 @@ function findLine_(text, part) {
   return '';
 }
 
+/**
+ * How many of the part were shipped, read from its line on the invoice, or null if unclear.
+ * Vast-Auto lines: "SPI F44B  FUEL TANK  EA  1  1  0  420.28 …" are UNIT, ORDERED, SHIPPED,
+ * B/O, then the price, so it takes the second number. Other layouts: the first whole number
+ * after the part, e.g. the 2 in "CH-8115 Oil filter 2 @ 12.50".
+ */
+function guessQty_(text, part) {
+  const p = norm_(part);
+  if (!p) return null;
+  const partRe = new RegExp(p.split('').join('[^A-Z0-9]*'), 'i');
+  const lines = String(text || '').split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const m = partRe.exec(lines[i]);
+    if (!m) continue;
+    const rest = lines[i].slice(m.index + m[0].length);
+    const table = rest.match(/\b[A-Z]{2,3}\s+(\d+)\s+(\d+)\s+(\d+)\s+\d+\.\d\d\b/i);
+    if (table) return Number(table[2]);
+    const loose = rest.match(/(?:^|\s)(\d{1,4})(?=\s|$)/);
+    return loose ? Number(loose[1]) : null;
+  }
+  return null;
+}
+
 function cacheGet_(key) {
   const sh = ss_().getSheetByName(CACHE);
   if (!sh || sh.getLastRow() < 2) return null;
@@ -303,42 +516,90 @@ function cachePut_(key, info) {
   sh.appendRow([key, info.invoice, "'" + info.text.slice(0, 45000)]);
 }
 
-/** Rebuilds the "By Invoice" tab: one block per supplier invoice, listing the parts returned. */
+function rebuildAll_() {
+  rebuildByPallet_();
+  rebuildByInvoice_();
+}
+
+/** Rebuilds the "By Pallet" tab: one block per pallet, newest first, listing what is on it. */
+function rebuildByPallet_() {
+  const ss = ss_();
+  const out = ss.getSheetByName(BY_PALLET);
+  if (!out || !ss.getSheetByName(PALLETS)) return;
+  out.clear();
+  const tz = ss.getSpreadsheetTimeZone();
+  const day = function (d) { return d instanceof Date ? Utilities.formatDate(d, tz, 'd MMM yyyy') : String(d || ''); };
+  const rows = returnRows_();
+
+  const values = [['Pallet', 'Part Number', 'Quantity', 'Invoice Number', 'Date Returned']];
+  const groupRows = [];
+  const block = function (title, status, g) {
+    groupRows.push(values.length + 1);
+    values.push([title, status, g.reduce(function (n, r) { return n + (Number(r[COL.qty - 1]) || 1); }, 0), '', '']);
+    g.forEach(function (r) {
+      values.push(['', r[COL.part - 1], r[COL.qty - 1], r[COL.invoice - 1], r[COL.date - 1]]);
+    });
+  };
+  const list = pallets_();
+  list.slice().reverse().forEach(function (p) {
+    block('Pallet ' + p.number,
+      p.finished ? day(p.started) + (day(p.finished) !== day(p.started) ? ' to ' + day(p.finished) : '')
+        : 'Started ' + day(p.started) + ', still open',
+      rows.filter(function (r) { return Number(r[COL.pallet - 1]) === p.number; }));
+  });
+  const known = {};
+  list.forEach(function (p) { known[p.number] = true; });
+  const loose = rows.filter(function (r) { return !known[Number(r[COL.pallet - 1])]; });
+  if (loose.length) block('No pallet', '', loose);
+
+  out.getRange(1, 1, values.length, 5).setNumberFormats(values.map(function () {
+    return ['@', '@', '0', '@', 'd mmm yyyy'];
+  })).setValues(values);
+  out.getRange(1, 1, 1, 5).setFontWeight('bold').setBackground('#1d7a3a').setFontColor('#ffffff');
+  groupRows.forEach(function (r) {
+    out.getRange(r, 1, 1, 5).setFontWeight('bold').setBackground('#e3f5e8');
+  });
+  out.setFrozenRows(1);
+  [110, 220, 90, 160, 130].forEach(function (w, i) { out.setColumnWidth(i + 1, w); });
+}
+
+/** Rebuilds the "By Invoice" tab: one block per invoice number, listing the parts returned. */
 function rebuildByInvoice_() {
   const ss = ss_();
-  const src = ss.getSheetByName(RETURNS);
   const out = ss.getSheetByName(BY_INVOICE);
-  if (!src || !out) return;
+  if (!out) return;
   out.clear();
-
-  const rows = src.getLastRow() < 2 ? [] :
-    src.getRange(2, 1, src.getLastRow() - 1, RETURN_HEADERS.length).getValues();
+  const rows = returnRows_();
 
   const groups = {};
   rows.forEach(function (r) {
-    const k = r[COL.supplier - 1] + '\u0000' + r[COL.invoice - 1];
+    const k = String(r[COL.invoice - 1]);
     (groups[k] = groups[k] || []).push(r);
   });
   const keys = Object.keys(groups).sort(function (a, b) {
     return a.toLowerCase() < b.toLowerCase() ? -1 : 1;
   });
 
-  const values = [['Supplier', 'Invoice Number', 'Part Number', 'Date Returned']];
+  const values = [['Invoice Number', 'Part Number', 'Quantity', 'Date Returned', 'Pallet']];
   const groupRows = [];
   keys.forEach(function (k) {
-    const g = groups[k].sort(function (a, b) { return String(a[1]).localeCompare(String(b[1])); });
+    const g = groups[k].sort(function (a, b) {
+      return String(a[COL.part - 1]).localeCompare(String(b[COL.part - 1]));
+    });
     groupRows.push(values.length + 1);
-    values.push([g[0][COL.supplier - 1], g[0][COL.invoice - 1],
-      g.length + (g.length === 1 ? ' part returned' : ' parts returned'), '']);
-    g.forEach(function (r) { values.push(['', '', r[COL.part - 1], r[COL.date - 1]]); });
+    values.push([k, 'Total returned', g.reduce(function (n, r) { return n + (Number(r[COL.qty - 1]) || 1); }, 0), '', '']);
+    g.forEach(function (r) {
+      values.push(['', r[COL.part - 1], r[COL.qty - 1], r[COL.date - 1], r[COL.pallet - 1]]);
+    });
   });
 
-  out.getRange(1, 1, values.length, 4).setValues(values);
-  out.getRange(1, 1, 1, 4).setFontWeight('bold').setBackground('#1d7a3a').setFontColor('#ffffff');
+  out.getRange(1, 1, values.length, 5).setNumberFormats(values.map(function () {
+    return ['@', '@', '0', 'd mmm yyyy', '0'];
+  })).setValues(values);
+  out.getRange(1, 1, 1, 5).setFontWeight('bold').setBackground('#1d7a3a').setFontColor('#ffffff');
   groupRows.forEach(function (r) {
-    out.getRange(r, 1, 1, 4).setFontWeight('bold').setBackground('#e3f5e8');
+    out.getRange(r, 1, 1, 5).setFontWeight('bold').setBackground('#e3f5e8');
   });
-  out.getRange('D:D').setNumberFormat('d mmm yyyy');
   out.setFrozenRows(1);
-  [220, 160, 160, 130].forEach(function (w, i) { out.setColumnWidth(i + 1, w); });
+  [160, 160, 90, 130, 70].forEach(function (w, i) { out.setColumnWidth(i + 1, w); });
 }
