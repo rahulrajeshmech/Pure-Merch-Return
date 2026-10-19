@@ -2,7 +2,7 @@
  * PureTech
  *
  * One web app and one Google Sheet for the shop, with two sections:
- *  - Returns (Code.gs, ReturnsPage.html): find supplier invoices in Gmail and log part returns.
+ *  - Returns (Returns.gs, ReturnsPage.html): find supplier invoices in Gmail and log part returns.
  *  - Scheduling (Schedule.gs, SchedulePage.html): the weekly staff calendar.
  * This file holds the page, the one-time setup and the helpers both sections use.
  */

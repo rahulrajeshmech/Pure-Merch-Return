@@ -2,8 +2,8 @@
 
 One Google web app and one Google Sheet for the shop, with two sections:
 
-- **Returns**: find which supplier invoice a part was bought on and log the return.
-- **Scheduling**: the weekly staff calendar, with a check that enough people are in each day.
+- **[Returns](returns/README.md)**: find which supplier invoice a part was bought on and log the return.
+- **[Scheduling](scheduling/README.md)**: the weekly staff calendar, with a check that enough people are in each day.
 
 The buttons at the top of the page switch between them. The app opens on **Returns**.
 
@@ -11,91 +11,48 @@ The buttons at the top of the page switch between them. The app opens on **Retur
 Scheduling). It runs on demo data with made-up suppliers and a sample team. The link is private:
 ask the owner to share it with you if it does not open.
 
-The code is in [`apps-script/`](apps-script). It runs inside your own Google account: no server,
-no cost, and your email never leaves Google.
+It runs inside your own Google account: no server, no cost, and your email never leaves Google.
 
-## Returns
+## Folders
 
+```
+puretech/
+├─ app/          the PureTech page and setup, shared by both sections
+├─ returns/      the Returns section
+├─ scheduling/   the Scheduling section
+├─ docs/         the architecture diagram
+└─ tools/        the local preview and demo builder
+```
 
-1. Type a part number.
-2. It finds every invoice PDF in your Gmail that contains that part (any supplier, any layout).
-3. Tap one invoice and press **RETURN**.
-4. It shows the invoice number to write on the part and saves the return to a Google Sheet
-   (downloadable as Excel).
+### Which file goes where in Apps Script
 
-It lists 15 invoices where that part has **not** been returned yet, so the same part is never returned
-twice against the same invoice. Other parts on that invoice are not affected.
+In Apps Script all the files sit side by side, without folders. Each one is named after its file,
+without the ending:
 
-## Scheduling
-
-There are three kinds of worker, each with its own picture and colour: **👷 Full time**, **⏰ Part time**
-and **🚚 Driver**. Scheduling has two parts, chosen with the buttons under the PureTech bar.
-Apart from these three pictures, the app uses plain words, no emoji.
-
-### Calendar (for looking)
-
-- One card per day, Monday to Sunday. Use **◀ ▶** to change week and **Today** to come back.
-- Each day shows a badge per kind of worker, e.g. `🚚 1/2 ✗`: 1 driver working, 2 needed, so the
-  day is short. A short day has a red border, and the red box at the top lists every short day.
-- The cards show only the numbers. If anything differs from the master schedule, the card says how many
-  changes there are (e.g. "1 change from the master schedule").
-- **Click a day card** to open it. It then lists everyone working that day under **Working** (extra cover
-  marked **+ COVER**) and that day's **Changes**: days off (greyed and crossed out, with the reason) and
-  extra cover. Click it again to close it. Only one day is open at a time.
-- Clicking a short day in the red box at the top opens that day.
-- A day with no minimum and nobody working shows **Closed**.
-- Nothing can be changed here. An open short day has a **Fix this day →** link that opens Make changes.
-
-### Make changes (for changing)
-
-- **Day off**: pick the day, tap the person, optionally pick why (Sick, Holiday, Other), **Save day off**.
-  Before saving it shows whether the day will be short.
-- **Extra cover**: pick the day, tap someone who isn't working that day, **Save extra cover**.
-  People of a kind that is short that day are marked **NEEDED**.
-- **Master scheduling**: the master schedule, which repeats every week.
-  - **Your team**: add people, set their kind (👷 / ⏰ / 🚚), mark someone **Away for a while** (hidden
-    from the calendar without deleting them), or **Remove** them.
-  - **Who works each day**: use **− / +** to set the minimum of each kind per day, **+ Add person**
-    to put someone on that day, and **×** to take them off. **Same people as Monday** copies Monday.
-  - Press **Save master schedule**. Days off and extra cover already entered stay as they are.
-- Under the buttons, **Changes for …** lists that week's days off and extra cover, each with **Undo**.
+| Name in Apps Script | Type | File in this project |
+|---|---|---|
+| `Main` | Script | [`app/Main.gs`](app/Main.gs) |
+| `Index` | HTML | [`app/Index.html`](app/Index.html) |
+| `appsscript.json` | Manifest | [`app/appsscript.json`](app/appsscript.json) |
+| `Returns` | Script | [`returns/Returns.gs`](returns/Returns.gs) |
+| `ReturnsPage` | HTML | [`returns/ReturnsPage.html`](returns/ReturnsPage.html) |
+| `Schedule` | Script | [`scheduling/Schedule.gs`](scheduling/Schedule.gs) |
+| `SchedulePage` | HTML | [`scheduling/SchedulePage.html`](scheduling/SchedulePage.html) |
 
 ## How it works
 
-![How PureTech works: Returns and Scheduling](diagrams/parts-returns-architecture.svg)
+![How PureTech works: Returns and Scheduling](docs/diagrams/puretech-architecture.svg)
 
 For a version you can zoom and click, download
-[`diagrams/parts-returns-architecture.html`](diagrams/parts-returns-architecture.html) and open it in Chrome.
-
-## Preview on this computer (no Google account)
-
-To see the page and try changes before copying anything into Google:
-
-1. In the project folder run `node tools/preview.mjs --open`. It builds
-   `preview/PureTech-preview.html` and opens it in the browser.
-2. It uses demo data: a sample team for Scheduling, and demo invoices for Returns (try part
-   numbers `CH8115` or `BP4471`). Nothing reaches Gmail or the Google Sheet.
-3. What you do in the preview is remembered in that browser. **Reset demo data** (top right) starts again.
-4. After changing any file in `apps-script/`, run step 1 again and reload the page.
-
-The same demo can be published as a web page to look at from any device:
-`node tools/preview.mjs --artifact` builds `preview/PureTech-demo.html` for that. On the published page,
-add `#scheduling` to the end of the link to open on Scheduling. Confirmation questions (Undo, Remove) are
-answered "yes" automatically there, because published pages cannot show them.
+[`docs/diagrams/puretech-architecture.html`](docs/diagrams/puretech-architecture.html) and open it in Chrome.
 
 ## The spreadsheet
 
 The sheet is called **PureTech**. Its tabs are coloured by section: green for Returns, blue for Scheduling.
+The tabs are described in each section's guide: [Returns](returns/README.md#spreadsheet-tabs) and
+[Scheduling](scheduling/README.md#spreadsheet-tabs).
 
-- **Returns**: one row per return with date returned, part number, invoice number, supplier,
-  email date, email subject, PDF file name and a link to the email. Newest first, with filters.
-- **By Invoice**: grouped by supplier and invoice, listing each part returned against it.
-- **Schedule · Staff**: name, kind of worker, and whether they are on the schedule (tick box).
-- **Schedule · Base Week**: the master schedule, one row per person with a tick box per weekday.
-- **Schedule · Needed**: the minimum of each kind of worker per weekday.
-- **Schedule · Changes**: days off and extra cover for particular dates.
-- The Schedule tabs can also be edited by hand; the app shows the change when it is reloaded.
-- **Download Excel**: link at the top of the tool, or in the sheet use File → Download → Microsoft Excel.
+**Download Excel**: link at the top of the tool, or in the sheet use File → Download → Microsoft Excel.
 
 ## Setup (one time, about 10 minutes)
 
@@ -106,16 +63,15 @@ Do this signed in to the Google account that **receives the supplier invoices**.
 3. Click the **gear (Project Settings)** on the left:
    - Tick **Show "appsscript.json" manifest file in editor**.
    - Set **Time zone** to yours.
-4. Back in the **Editor** (`< >` icon):
-   - Open `Code.gs`, delete what's there, paste in [`apps-script/Code.gs`](apps-script/Code.gs).
-   - Open `appsscript.json`, delete what's there, paste in [`apps-script/appsscript.json`](apps-script/appsscript.json).
-   - Click **+ → Script**, name it `Main` (no `.gs`), delete what's there, paste in
-     [`apps-script/Main.gs`](apps-script/Main.gs). Do the same for `Schedule` with
-     [`apps-script/Schedule.gs`](apps-script/Schedule.gs).
-   - Click **+ → HTML**, name it `Index` (no `.html`), delete what's there, paste in
-     [`apps-script/Index.html`](apps-script/Index.html). Do the same for `ReturnsPage` with
-     [`apps-script/ReturnsPage.html`](apps-script/ReturnsPage.html) and `SchedulePage` with
-     [`apps-script/SchedulePage.html`](apps-script/SchedulePage.html).
+4. Back in the **Editor** (`< >` icon), create the files in the table above:
+   - The editor starts with a file called `Code.gs`. Click **⋮** next to it → **Rename**, call it `Returns`,
+     delete what's in it, and paste in `returns/Returns.gs`.
+   - Open `appsscript.json`, delete what's there, and paste in `app/appsscript.json`.
+   - Click **+ → Script**, name it `Main` (no `.gs`), and paste in `app/Main.gs`.
+     Do the same for `Schedule` with `scheduling/Schedule.gs`.
+   - Click **+ → HTML**, name it `Index` (no `.html`), delete what's there, and paste in `app/Index.html`.
+     Do the same for `ReturnsPage` with `returns/ReturnsPage.html` and `SchedulePage` with
+     `scheduling/SchedulePage.html`.
    - Click **Save** (disk icon).
 5. Click **Deploy → New deployment** → gear → **Web app**:
    - Execute as: **Me**
@@ -126,54 +82,46 @@ Do this signed in to the Google account that **receives the supplier invoices**.
    - Copy the **Web app URL**.
 6. Open that URL. The first time, Google may ask for permission again (same steps as above).
    The tool then creates the Returns and Schedule tabs in your sheet by itself.
-7. On the returns PC, open Chrome **signed in to that same Google account**, open the URL, and
+7. On the shop PC, open Chrome **signed in to that same Google account**, open the URL, and
    create a desktop shortcut (Chrome menu ⋮ → **Cast, save and share → Create shortcut**, name it **PureTech**).
 8. Optional: for a shortcut that opens straight on Scheduling, add `?section=scheduling` to the end of
    the Web app URL, open that, and create a second shortcut named **Staff schedule**.
+9. Open **Scheduling → Make changes → Master scheduling** to add the team.
 
-### Upgrading from the old "Parts Returns" tool
+### Upgrading an existing Apps Script project
 
-Use the same Google Sheet and Apps Script project, so the returns already logged and the web-app URL stay.
+If your Apps Script still has a file called `Code` from an earlier version, it is now called `Returns`:
 
-1. Open the Parts Returns Google Sheet → **Extensions → Apps Script**.
-2. Replace `Code.gs` and `Index` as in "Updating to a new version" below.
-3. Add the four new files: **+ → Script** named `Main` and `Schedule`, **+ → HTML** named `ReturnsPage`
-   and `SchedulePage`, pasting in the file with the same name from [`apps-script/`](apps-script).
-   Press **Ctrl + S**.
-4. **Deploy → Manage deployments → pencil ✎ → Version: New version → Deploy**.
-5. Reload the tool. The first time it renames the sheet to **PureTech** and adds the Schedule tabs.
-6. Open **Scheduling → Make changes → Master scheduling** to add the team.
+1. Open the Google Sheet → **Extensions → Apps Script**.
+2. Click **+ → Script**, name it `Returns`, and paste in `returns/Returns.gs`.
+3. Click **⋮** next to `Code` → **Delete**.
+4. Add any other file from the table above that is missing, and replace the ones that changed.
+5. **Deploy → Manage deployments → pencil ✎ → Version: New version → Deploy**.
+6. Reload the tool. Your returns and schedule data stay as they are.
 
 ### Updating to a new version of the code
 
 1. Open the Google Sheet → **Extensions → Apps Script**.
-2. For each changed file (for example `Code.gs`, `SchedulePage.html`): click it on the left, select all (**Ctrl + A**),
-   delete, paste the new version, and press **Ctrl + S**.
+2. For each changed file (for example `SchedulePage`): click it on the left, select all (**Ctrl + A**),
+   delete, paste the new version from this project (see the table above), and press **Ctrl + S**.
 3. Click **Deploy → Manage deployments**. Click the **pencil ✎** on the right, set **Version** to
    **New version**, and click **Deploy**.
 4. Reload the tool in Chrome. The URL and desktop shortcut stay the same.
 
 Skipping step 3 means the tool keeps running the old code.
 
-## Good to know (Returns)
+## Preview on this computer (no Google account)
 
-- **Finding invoices** uses Gmail's own search, so it finds what typing the part number into Gmail finds.
-  Dashes, spaces and slashes don't matter: `ch8115`, `CH-8115` and `CH 8115` all find the same invoices.
-  It shows the **15 newest invoices where that part has not been returned yet**, going as far back as
-  needed (up to 300 emails). Invoices already used for that part are hidden behind a
-  "Show … already returned" link. Change `SHOW_INVOICES` at the top of `Code.gs` for a different number.
-- **Reading the PDF** uses Google Drive's text recognition, so any supplier layout works, scans included.
-  Each PDF takes a few seconds the first time; after that it is remembered (hidden `_pdf_cache` tab).
-- **Invoice number** is a best guess from the PDF ("Invoice No", "Invoice #", "Bill No", …), then the
-  email subject, then the file name. When an invoice is selected the number is shown in a box so it can
-  be corrected; if no number was found, it must be typed in.
-- Each card shows the line from the PDF that contains the part, and warns if the part could not be
-  seen in that PDF.
-- **Undo a mistake:**
-  - Straight after saving: press **UNDO — that was a mistake** on the "Write this on the part" screen.
-  - Later: search the part, click **Show … already returned**, and click **undo this return** on that invoice.
-  - Either way the row is removed from the spreadsheet and the invoice is free to use again.
-    Cross out the invoice number if it was already written on the part.
-- If one invoice had more than one of the same part, open **Show … already returned** and use the small
-  **"return again"** link on that invoice.
-- Works with a personal Gmail account. Work (Google Workspace) accounts may need the IT admin to allow Apps Script.
+To see the page and try changes before copying anything into Google:
+
+1. In the project folder run `node tools/preview.mjs --open`. It builds
+   `preview/PureTech-preview.html` and opens it in the browser.
+2. It uses demo data: a sample team for Scheduling, and demo invoices for Returns (try part
+   numbers `CH8115` or `BP4471`). Nothing reaches Gmail or the Google Sheet.
+3. What you do in the preview is remembered in that browser. **Reset demo data** (top right) starts again.
+4. After changing any file in `app/`, `returns/` or `scheduling/`, run step 1 again and reload the page.
+
+The same demo can be published as a web page to look at from any device:
+`node tools/preview.mjs --artifact` builds `preview/PureTech-demo.html` for that. On the published page,
+add `#scheduling` to the end of the link to open on Scheduling. Confirmation questions (Undo, Remove) are
+answered "yes" automatically there, because published pages cannot show them.

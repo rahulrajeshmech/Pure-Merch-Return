@@ -1,5 +1,5 @@
 // Builds preview/PureTech-preview.html: the real PureTech page, runnable from a
-// local file with no Google account. Run after any change to apps-script/:
+// local file with no Google account. Run after any change in app/, returns/ or scheduling/:
 //
 //   node tools/preview.mjs          (add --open to open it in the browser)
 //
@@ -10,9 +10,18 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const src = name => readFileSync(join(root, 'apps-script', name), 'utf8');
+// Where each Apps Script file lives in this folder. In Apps Script they are all side by side.
+const FILES = {
+  'Main.gs': 'app', 'Index.html': 'app',
+  'Returns.gs': 'returns', 'ReturnsPage.html': 'returns',
+  'Schedule.gs': 'scheduling', 'SchedulePage.html': 'scheduling',
+};
+const src = name => {
+  if (!FILES[name]) throw new Error(name + ' is not in the FILES list in tools/preview.mjs.');
+  return readFileSync(join(root, FILES[name], name), 'utf8');
+};
 
-const server = ['Main.gs', 'Code.gs', 'Schedule.gs'].map(src).join('\n');
+const server = ['Main.gs', 'Returns.gs', 'Schedule.gs'].map(src).join('\n');
 const fake = readFileSync(join(root, 'tools', 'preview-fake.js'), 'utf8').replace('/* SERVER_CODE */', () => server);
 
 const banner = `<div style="background:#fff4d6;color:#5c3d00;font:15px/1.4 system-ui,sans-serif;padding:6px 16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
