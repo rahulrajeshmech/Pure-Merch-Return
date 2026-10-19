@@ -22,6 +22,8 @@ e.g. **Putting returns on Pallet 3 · 12 parts**.
   (It is greyed out while the current pallet is empty.)
 - **See pallets**: every pallet, newest first. Tap one to see what is on it.
   - **Move to pallet…** next to a part moves it to another pallet.
+  - **Delete** next to a part removes that return from the spreadsheet, the same as undo. The invoice is
+    free to use again; cross out the invoice number if it was already written on the part.
   - **Add more to this pallet** on an earlier pallet makes new returns go on it again. The pallet that
     was in use is marked as finished (or removed, if nothing was on it).
 - Returns saved before pallets were added are all on **Pallet 1**.
@@ -62,7 +64,8 @@ e.g. **Putting returns on Pallet 3 · 12 parts**.
   - Straight after saving: press **UNDO — that was a mistake** on the "Write this on the part" screen.
   - Later: search the part and click **undo the last return** on that invoice (it may be under
     **Show … already returned**).
-  - Either way the row is removed from the spreadsheet and the invoice is free to use again.
+  - Or: **See pallets**, tap the pallet, and press **Delete** next to that part.
+  - Any way, the row is removed from the spreadsheet and the invoice is free to use again.
     Cross out the invoice number if it was already written on the part.
 - **Quantity:** the tool reads how many were shipped from the part's line on the invoice (on Vast-Auto
   invoices, the **SHIPPED** column). An invoice stays in the list until all of them have been returned,

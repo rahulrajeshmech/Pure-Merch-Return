@@ -35,6 +35,7 @@
   .returns .stepper .n { font-size: 44px; font-weight: 800; min-width: 70px; text-align: center; }
   .returns .btn { padding: 12px 20px; font-size: 20px; font-weight: 700; background: var(--text); color: #fff; }
   .returns .btn.light { background: #e3e6eb; color: var(--text); }
+  .returns .btn.delete { background: none; color: var(--bad); border: 2px solid var(--bad); padding: 10px 18px; }
   .returns .btn:disabled { background: #c9ced6; color: #fff; cursor: not-allowed; }
   .returns .pallet-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;
                          padding: 12px 14px; background: var(--card); border: 2px solid var(--line); border-radius: 12px; }
@@ -460,6 +461,7 @@ $('palletsBack').addEventListener('click', () => {
   if (pv && pv.show) { pv = { show: null }; renderPallets(); return; }
   pv = null;
   showView('search');
+  if (state && state.stale) runSearch(state.part);
 });
 
 function palletDates(p) {
@@ -485,6 +487,7 @@ function renderPallets() {
   const line = l => '<div class="pline">'
     + '<div class="what"><b>' + esc(l.part) + '</b> × ' + l.qty + '<span>Invoice ' + esc(l.invoice) + ' · ' + esc(l.when) + '</span></div>'
     + '<button class="btn light" data-move="' + esc(l.id) + '">Move to pallet…</button>'
+    + '<button class="btn delete" data-delete="' + esc(l.id) + '">Delete</button>'
     + (pv.moving === l.id ? '<div class="pick">' + (others.length
         ? 'Move to: ' + others.map(n => '<button class="btn" data-to="' + n + '">Pallet ' + n + '</button>').join('')
         : 'There is no other pallet yet. Press NEW PALLET first.')
@@ -522,6 +525,18 @@ $('palletsBody').addEventListener('click', async e => {
     b.disabled = true;
     try { setPallets(await call('moveToPallet', pv.moving, Number(b.dataset.to))); }
     catch (err) { alert('Could not move it: ' + err.message); }
+    showPallet(pv.show);
+    return;
+  }
+  if (b.dataset.delete) {
+    const l = pv.lines.find(x => x.id === b.dataset.delete);
+    if (!l || !confirm('Delete this return?\n\nPart: ' + l.part + ' × ' + l.qty + '\nInvoice: ' + l.invoice +
+                       '\n\nIf you already wrote the invoice number on the part, cross it out.')) return;
+    b.disabled = true;
+    try { setPallets(await call('deleteReturn', l.id)); }
+    catch (err) { alert('Could not delete: ' + err.message); }
+    // The invoice list for this part may now be out of date; search again on the way back.
+    if (state && state.loaded) state.stale = true;
     showPallet(pv.show);
     return;
   }

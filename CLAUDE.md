@@ -29,7 +29,7 @@ one global scope. Script and HTML files must not share a name.
 - `app/appsscript.json` — manifest (Gmail + Drive advanced services, web app settings).
 - `returns/Returns.gs` (was `Code.gs`) — Returns server: Gmail search (`searchPart`, `partQuery_`), PDF
   reading via Drive OCR (`readInvoice`, `pdfText_`, `guessInvoice_`, `guessQty_`), saving/undo (`recordReturn`,
-  `undoReturn`), pallets (`getPallets`, `getPallet`, `newPallet`, `reopenPallet`, `moveToPallet`), tabs
+  `undoReturn`), pallets (`getPallets`, `getPallet`, `newPallet`, `reopenPallet`, `moveToPallet`, `deleteReturn`), tabs
   (`setupReturns_`, `moveToPalletLayout_`, `rebuildByPallet_`, `rebuildByInvoice_`).
 - `returns/ReturnsPage.html` — Returns section (CSS scoped under `.returns`): pallet bar, search, invoice cards
   with the quantity picker, done screen, pallets view.

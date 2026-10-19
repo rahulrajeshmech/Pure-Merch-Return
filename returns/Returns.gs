@@ -241,6 +241,21 @@ function moveToPallet(id, number) {
   });
 }
 
+/** Deletes one return (by its id from getPallet), the same as undoing it. */
+function deleteReturn(id) {
+  return withLock_(function () {
+    const rows = returnRows_();
+    for (let i = 0; i < rows.length; i++) {
+      if (rowId_(rows[i]) === id) {
+        sheet_(RETURNS).deleteRow(i + 2);
+        rebuildAll_();
+        return getPallets();
+      }
+    }
+    throw new Error('That return was not found. It may already have been deleted.');
+  });
+}
+
 /** The number of the pallet returns go on now, starting Pallet 1 if there is none. */
 function openPallet_() {
   const list = pallets_();
