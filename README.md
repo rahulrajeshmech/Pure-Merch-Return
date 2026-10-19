@@ -7,6 +7,10 @@ One Google web app and one Google Sheet for the shop, with two sections:
 
 The buttons at the top of the page switch between them. The app opens on **Returns**.
 
+**Live demo:** <https://claude.ai/artifact/UH6Por2eFhb5ntu2B4ZMSu> (add `#scheduling` to the end to open on
+Scheduling). It runs on demo data with made-up suppliers and a sample team. The link is private:
+ask the owner to share it with you if it does not open.
+
 The code is in [`apps-script/`](apps-script). It runs inside your own Google account: no server,
 no cost, and your email never leaves Google.
 
