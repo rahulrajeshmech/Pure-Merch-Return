@@ -5,14 +5,16 @@ Google Sheet (also named PureTech) with two sections:
 
 - **Returns**: the user types a part number, the tool searches the shared Gmail for supplier invoice
   PDFs containing it, they pick one, press RETURN, and the return is logged in the Sheet.
-- **Scheduling**: a weekly staff calendar (Full time 👷 / Part time ⏰ / Driver 🚚) with a minimum of
+- **Scheduling**: a weekly staff calendar (Full time / Part time / Driver, each with an icon and colour) with a minimum of
   each kind per weekday, a repeating master schedule, and dated days off / extra cover on top.
 
 Everyone uses one shared PC and Google account; there are no logins or edit protection. The people
 using it are not technical: keep the UI to big text, few choices, plain words. Never add steps or
 settings to their screen without asking. The schedule must look like a calendar (day cards, coloured
-emoji tags), never like a spreadsheet grid. The only emoji anywhere in the app are the three worker
-types; everything else is plain words (plain ✓ ✗ ◀ ▶ → symbols are fine).
+name tags), never like a spreadsheet grid. No emoji anywhere in the app: the three worker types use the
+SVG icons (ID badge, clock, truck); everything else is plain words (plain ✓ ✗ ◀ ▶ → symbols are fine).
+Look: minimal, white top bar, Inter, ink-black primary buttons, colour only for status (green covered,
+orange short) and the three worker types; teams can be 20+ people a day, so day cards show numbers only.
 
 ## Files
 
@@ -24,8 +26,10 @@ one global scope. Script and HTML files must not share a name.
 - `app/Main.gs` — `doGet` (template page; `?section=scheduling` opens Scheduling), `include_`,
   `getConfig`, `setup` (renames the sheet to PureTech, calls each section's setup), shared helpers
   `ss_`, `sheet_`, `norm_`.
-- `app/Index.html` — page shell: PureTech bar, section buttons, shared CSS and the `$`, `esc`,
-  `call` helpers; pastes in the two section files with `<?!= include_('…') ?>`.
+- `app/Index.html` — page shell: PureTech bar, section buttons, shared CSS (colour tokens on `:root`,
+  `.btn`, `.link`, `.seg`, worker-type `.ico`/`.i-*`/`.t-*`), the worker-type icons as an SVG sprite
+  (`#ic-full`, `#ic-part`, `#ic-driver`) and the `$`, `esc`, `call`, `typeIcon(type, size, decorative)`
+  helpers; pastes in the two section files with `<?!= include_('…') ?>`.
 - `app/appsscript.json` — manifest (Gmail + Drive advanced services, web app settings).
 - `returns/Returns.gs` (was `Code.gs`) — Returns server: Gmail search (`searchPart`, `partQuery_`), PDF
   reading via Drive OCR (`readInvoice`, `pdfText_`, `guessInvoice_`, `guessQty_`), saving/undo (`recordReturn`,
@@ -36,8 +40,10 @@ one global scope. Script and HTML files must not share a name.
 - `scheduling/Schedule.gs` — Scheduling server: `getWeek`, `setDayOff`, `addExtra`, `removeChange`,
   `saveMasterSchedule`; pure `buildWeek_` (no Google calls) works out each day; `setupSchedule_`.
 - `scheduling/SchedulePage.html` — Scheduling section (CSS under `.scheduling`, classes `sc-*`, JS
-  wrapped in the `Scheduling` module so its names don't clash with the Returns script). Emoji and
-  colours per worker type are in `TYPES` at the top of the script.
+  wrapped in the `Scheduling` module so its names don't clash with the Returns script). Worker types are
+  in `TYPES` at the top of the script. Calendar: numbers-only day cards, tap one for the names panel
+  (`dayPanel`) under the week. Master scheduling: minimum cards per day, then one card per person with
+  type buttons and Mon–Sun toggles, a filter by type, and a sticky Save bar.
 - `README.md` (setup, updating, preview, file table), `returns/README.md`, `scheduling/README.md` —
   the owner's instructions. Keep them in sync with behaviour changes.
 - `docs/diagrams/puretech-architecture.{html,svg}` — architecture diagram (made with archify).

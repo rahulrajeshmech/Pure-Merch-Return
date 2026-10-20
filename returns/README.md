@@ -6,7 +6,7 @@ Find which supplier invoice a part was bought on, and log the return.
 
 1. Type a part number.
 2. It finds every invoice PDF in your Gmail that contains that part (any supplier, any layout).
-3. Tap one invoice, choose **how many** you are returning with the **−** and **+** buttons, and press **RETURN**.
+3. Tap one invoice, choose **how many** you are returning with the **−** and **+** buttons, and press **Return**.
 4. It shows the invoice number to write on the part and the **pallet** to put it on, and saves the
    return to the Google Sheet (downloadable as Excel).
 
@@ -15,12 +15,13 @@ the invoice shipped. Other parts on that invoice are not affected.
 
 ## Pallets
 
-Returns are packed onto pallets. The bar at the top of Returns says which pallet new returns go on,
-e.g. **Putting returns on Pallet 3 · 12 parts**.
+Returns are packed onto pallets. The line at the top of Returns says which pallet new returns go on,
+e.g. **Pallet 3 · 12 parts · started 14 Oct**.
 
-- **NEW PALLET**: press it when a pallet is full. New returns then go on the next pallet.
+- **New pallet**: press it when a pallet is full. New returns then go on the next pallet.
   (It is greyed out while the current pallet is empty.)
-- **See pallets**: every pallet, newest first. Tap one to see what is on it.
+- **See pallets**: every pallet, newest first; the one new returns go on has a dark outline. Tap one to see
+  what is on it, and **◀ All pallets** to go back to the list.
   - **Move to pallet…** next to a part moves it to another pallet.
   - **Delete** next to a part removes that return from the spreadsheet, the same as undo. The invoice is
     free to use again; cross out the invoice number if it was already written on the part.
@@ -33,7 +34,7 @@ e.g. **Putting returns on Pallet 3 · 12 parts**.
 | File | What it does |
 |---|---|
 | [`Returns.gs`](Returns.gs) | Server side: Gmail search, reading the PDFs, saving and undoing returns, the Returns tabs. |
-| [`ReturnsPage.html`](ReturnsPage.html) | The Returns screen: search box, invoice cards, RETURN button. |
+| [`ReturnsPage.html`](ReturnsPage.html) | The Returns screen: search box, invoice cards, quantity, Return button, saved screen, pallets. |
 
 ## Spreadsheet tabs
 
@@ -61,16 +62,16 @@ e.g. **Putting returns on Pallet 3 · 12 parts**.
 - Each card shows the line from the PDF that contains the part, and warns if the part could not be
   seen in that PDF.
 - **Undo a mistake:**
-  - Straight after saving: press **UNDO — that was a mistake** on the "Write this on the part" screen.
-  - Later: search the part and click **undo the last return** on that invoice (it may be under
+  - Straight after saving: press **Undo — that was a mistake** on the "Write this on the part" screen.
+  - Later: search the part and click **Undo the last return** on that invoice (it may be under
     **Show … already returned**).
   - Or: **See pallets**, tap the pallet, and press **Delete** next to that part.
   - Any way, the row is removed from the spreadsheet and the invoice is free to use again.
     Cross out the invoice number if it was already written on the part.
 - **Quantity:** the tool reads how many were shipped from the part's line on the invoice (on Vast-Auto
   invoices, the **SHIPPED** column). An invoice stays in the list until all of them have been returned,
-  showing e.g. "2 of 4 already returned — 2 left". If the number was read wrong, press **wrong? change it**;
+  showing e.g. "2 of 4 already returned — 2 left". If the number was read wrong, press **Shipped number wrong? Change it**;
   if it could not be read, type it in the box. To return more from an invoice that shows as fully returned,
-  open **Show … already returned** and use **return more from this invoice**.
+  open **Show … already returned** and use **Return more from this invoice**.
 - **Undo** removes the last return of that part on that invoice, whatever its quantity.
 - Works with a personal Gmail account. Work (Google Workspace) accounts may need the IT admin to allow Apps Script.

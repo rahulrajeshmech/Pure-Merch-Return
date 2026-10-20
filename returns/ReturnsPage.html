@@ -1,96 +1,155 @@
 <!-- PureTech — Returns section. Pasted into Index.html. -->
 <style>
-  .returns { max-width: 760px; margin: 0 auto; padding: 16px 16px 140px; }
-  .returns .search { display: flex; gap: 10px; }
-  .returns input[type=text] { width: 100%; font-size: 28px; padding: 12px 14px; border: 2px solid var(--line);
-                     border-radius: 10px; text-transform: uppercase; }
-  .returns input[type=text]:focus { outline: none; border-color: #2f6fed; }
-  .returns .go { padding: 0 26px; font-size: 24px; font-weight: 700; background: var(--text); color: #fff; }
-  .returns .msg { margin: 18px 4px; font-size: 20px; color: var(--muted); }
-  .returns .msg.err { color: var(--bad); }
-  .returns .card { background: var(--card); border: 3px solid var(--line); border-radius: 12px; padding: 16px 18px;
-          margin-top: 12px; cursor: pointer; }
-  .returns .card.sel { border-color: var(--ok); background: #f6fcf8; }
-  .returns .card.off { opacity: .55; cursor: default; }
-  .returns .top { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 17px; }
-  .returns .top b { color: var(--text); font-size: 20px; }
-  .returns .inv { font-size: 26px; font-weight: 700; margin-top: 4px; }
-  .returns .inv.reading { color: var(--muted); font-weight: 400; font-size: 20px; }
-  .returns .line { font: 15px/1.3 ui-monospace, Consolas, monospace; color: var(--muted); margin-top: 6px; word-break: break-word; }
-  .returns .tag { display: inline-block; margin-top: 8px; padding: 4px 10px; border-radius: 6px; font-size: 16px; font-weight: 600; }
-  .returns .tag.bad { background: var(--bad-bg); color: var(--bad); }
-  .returns .tag.warn { background: #fff4d6; color: var(--warn); }
-  .returns .tag.ok { background: var(--ok-bg); color: var(--ok); }
-  .returns .card a { font-size: 16px; color: #2f6fed; }
-  .returns .again { background: none; color: var(--bad); text-decoration: underline; font-size: 15px; padding: 0; margin-left: 10px; }
-  .returns .msg .again { color: var(--muted); font-size: 17px; margin: 0; }
-  .returns .fix { margin-top: 12px; }
-  .returns .fix label { font-size: 16px; color: var(--muted); display: block; margin-bottom: 4px; }
-  .returns .fix input { font-size: 24px; padding: 8px 12px; }
-  .returns .shipped { font-size: 17px; color: var(--muted); margin-top: 6px; }
-  .returns .shipped .again { color: var(--muted); }
-  .returns .stepper { display: flex; align-items: center; gap: 14px; }
-  .returns .stepper button { width: 64px; height: 64px; font-size: 36px; font-weight: 800; background: var(--text); color: #fff; }
-  .returns .stepper button:disabled { background: #c9ced6; cursor: not-allowed; }
-  .returns .stepper .n { font-size: 44px; font-weight: 800; min-width: 70px; text-align: center; }
-  .returns .btn { padding: 12px 20px; font-size: 20px; font-weight: 700; background: var(--text); color: #fff; }
-  .returns .btn.light { background: #e3e6eb; color: var(--text); }
-  .returns .btn.delete { background: none; color: var(--bad); border: 2px solid var(--bad); padding: 10px 18px; }
-  .returns .btn:disabled { background: #c9ced6; color: #fff; cursor: not-allowed; }
-  .returns .pallet-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;
-                         padding: 12px 14px; background: var(--card); border: 2px solid var(--line); border-radius: 12px; }
-  .returns .pallet-bar .text { flex: 1; min-width: 220px; font-size: 22px; }
-  .returns .ptitle { font-size: 30px; margin: 18px 4px 4px; }
-  .returns .pline { background: var(--card); border: 2px solid var(--line); border-radius: 12px; padding: 12px 16px;
-                    margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
-  .returns .pline .what { flex: 1; min-width: 200px; font-size: 22px; }
-  .returns .pline .what span { display: block; font-size: 16px; color: var(--muted); }
-  .returns .pick { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 18px; }
-  .returns .bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--line);
-         padding: 14px 16px; }
-  .returns .bar button { display: block; width: 100%; max-width: 728px; margin: 0 auto; padding: 20px; font-size: 30px;
-                font-weight: 800; background: var(--ok); color: #fff; }
-  .returns .bar button:disabled { background: #a9b0bb; cursor: not-allowed; }
-  .returns .done { text-align: center; padding: 40px 10px; }
-  .returns .done p { font-size: 24px; margin: 0 0 10px; }
-  .returns .done .big { font-size: 64px; font-weight: 800; letter-spacing: 2px; margin: 10px 0 6px; word-break: break-all; }
-  .returns .done .sub { color: var(--muted); font-size: 18px; }
-  .returns .done .pallet { font-size: 32px; font-weight: 800; color: var(--ok); margin-top: 18px; }
-  .returns .done button { margin-top: 30px; padding: 18px 40px; font-size: 26px; font-weight: 700; background: var(--text); color: #fff; }
-  .returns .done button.undo { display: block; margin: 24px auto 0; padding: 12px 28px; font-size: 20px;
-                      background: none; color: var(--bad); border: 2px solid var(--bad); }
+  .returns { max-width: 880px; margin: 0 auto; padding: 28px 16px 140px; }
+  .returns .pallet-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+                         margin-bottom: 28px; }
+  .returns .pallet-bar .text { font-size: 17px; color: var(--muted); }
+  .returns .pallet-bar .text b { color: var(--text); font-weight: 600; }
+  .returns .pallet-bar .acts { display: flex; gap: 8px; }
+  .returns label.big { display: block; font-size: 16px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+  .returns .search { display: flex; flex-wrap: wrap; gap: 10px; }
+  .returns .search input { flex: 1 1 300px; min-width: 0; height: 68px; padding: 0 20px; font-size: 30px; font-weight: 600;
+                           letter-spacing: .02em; text-transform: uppercase; border: 1px solid var(--line-strong);
+                           border-radius: 12px; background: var(--card); }
+  .returns .search input:focus { outline: none; border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
+  .returns .search .btn { height: 68px; padding: 0 36px; font-size: 20px; }
+  .returns .msg { margin: 24px 0 12px; font-size: 17px; color: var(--muted); }
+  .returns .msg.err { color: var(--bad); font-weight: 600; }
+  .returns .msg b { color: var(--text); font-weight: 600; }
+
+  /* Invoice cards */
+  .returns .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px;
+                   margin-top: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+  .returns .card:hover { border-color: #a8a29e; }
+  .returns .card.sel { border-color: var(--text); box-shadow: 0 0 0 1px var(--text), 0 8px 24px rgba(24, 24, 27, .06); cursor: default; }
+  .returns .card.off { opacity: .6; cursor: default; }
+  .returns .card.off:hover { border-color: var(--line); }
+  .returns .top { display: flex; align-items: flex-start; gap: 16px; }
+  .returns .top .who { flex: 1; min-width: 0; font-size: 16px; color: var(--muted); }
+  .returns .tick { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--line-strong);
+                   display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; }
+  .returns .card.sel .tick { background: var(--text); border-color: var(--text); color: #fff; }
+  .returns .card.off .tick { visibility: hidden; }
+  .returns .inv { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--text); }
+  .returns .inv span { font-weight: 400; color: var(--muted); }
+  .returns .inv.reading { font-size: 18px; font-weight: 400; color: var(--muted); }
+  .returns .line { font: 14px/1.4 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); word-break: break-word; }
+  .returns .notes { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; margin-top: 6px; font-size: 16px; }
+  .returns .tag { font-weight: 500; color: #52525b; }
+  .returns .tag.bad, .returns .tag.warn { color: var(--warn); }
+  .returns .tag.ok { color: var(--ok); }
+  .returns .card a { color: var(--muted); }
+  .returns .again { font-size: 15px; font-weight: 500; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+  .returns .again:hover { color: var(--text); }
+
+  /* Quantity and invoice number on the chosen card */
+  .returns .chosen { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 18px; display: flex; flex-wrap: wrap;
+                     gap: 20px 48px; align-items: flex-start; cursor: default; }
+  .returns .chosen > div { display: flex; flex-direction: column; gap: 6px; }
+  .returns .chosen .grow { flex: 1 1 260px; }
+  .returns .chosen .again { align-self: flex-start; text-align: left; }
+  .returns .fix label { display: block; font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .returns .fix input { width: 100%; height: 56px; padding: 0 14px; font-size: 22px; font-weight: 600; text-transform: uppercase;
+                        border: 1px solid var(--line-strong); border-radius: 12px; background: var(--card); }
+  .returns .fix input:focus { outline: none; border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
+  .returns .hint { font-size: 15px; color: var(--muted); }
+  .returns .stepper { display: flex; align-items: center; width: max-content; border: 1px solid var(--line-strong);
+                      border-radius: 12px; overflow: hidden; background: var(--card); }
+  .returns .stepper button { width: 56px; height: 56px; font-size: 28px; font-weight: 500; }
+  .returns .stepper button:hover { background: var(--soft); }
+  .returns .stepper button:disabled { color: #c4c4c8; background: var(--card); }
+  .returns .stepper .n { min-width: 80px; text-align: center; font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums;
+                         line-height: 56px; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+
+  /* Bottom bar */
+  .returns .bar { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, .97);
+                  border-top: 1px solid var(--line); padding: 14px 16px; }
+  .returns .bar .in { max-width: 848px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+  .returns .bar .text { flex: 1 1 260px; font-size: 17px; color: var(--muted); }
+  .returns .bar .btn { height: 60px; padding: 0 56px; font-size: 22px; }
+
+  /* Saved */
+  .returns .done { max-width: 640px; margin: 0 auto; padding: 36px 0; text-align: center; display: flex;
+                   flex-direction: column; align-items: center; gap: 8px; }
+  .returns .done .saved { display: inline-flex; align-items: center; gap: 8px; color: var(--ok); font-weight: 600; }
+  .returns .done .saved span { width: 26px; height: 26px; border-radius: 50%; background: #dcfce7; display: inline-flex;
+                               align-items: center; justify-content: center; font-size: 15px; }
+  .returns .done p { margin: 24px 0 0; color: var(--muted); }
+  .returns .done .big { font-size: 104px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05;
+                        font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .returns .done .sub { color: var(--muted); font-size: 17px; }
+  .returns .done .pallet { width: 100%; margin-top: 32px; padding: 18px 0; border-top: 1px solid var(--line);
+                           border-bottom: 1px solid var(--line); display: flex; justify-content: space-between;
+                           align-items: center; gap: 12px; }
+  .returns .done .pallet span { color: var(--muted); }
+  .returns .done .pallet b { font-size: 26px; }
+  .returns .done .btn.primary { width: 100%; height: 64px; margin-top: 32px; font-size: 22px; }
+
+  /* Pallets */
+  .returns .back { min-height: 44px; font-size: 17px; font-weight: 500; color: var(--muted); }
+  .returns .back:hover { color: var(--text); }
+  .returns .ptitle { margin: 16px 0 4px; font-size: 34px; font-weight: 700; letter-spacing: -0.02em; }
+  .returns .psub { margin: 0 0 16px; color: var(--muted); font-size: 17px; }
+  .returns .openmark { color: var(--ok); font-weight: 500; font-size: 16px; }
+  .returns .pal { display: flex; justify-content: space-between; align-items: center; gap: 16px; width: 100%;
+                  margin-top: 12px; padding: 20px 22px; text-align: left; background: var(--card);
+                  border: 1px solid var(--line); border-radius: 14px; }
+  .returns .pal:hover { border-color: #a8a29e; }
+  .returns .pal.open { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
+  .returns .pal .name { display: block; font-size: 22px; font-weight: 700; }
+  .returns .pal .dates { display: block; color: var(--muted); font-size: 16px; }
+  .returns .pal .arrow { color: #a1a1aa; }
+  .returns .plines { margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 0 20px; }
+  .returns .pline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 16px 0; border-top: 1px solid #f0efed; }
+  .returns .pline:first-child { border-top: 0; }
+  .returns .pline .what { flex: 1 1 240px; min-width: 0; }
+  .returns .pline .what b { font-size: 20px; font-variant-numeric: tabular-nums; }
+  .returns .pline .what em { font-style: normal; color: var(--muted); }
+  .returns .pline .what span { display: block; color: var(--muted); font-size: 15px; }
+  .returns .pick { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 4px; font-size: 16px; color: var(--muted); }
 </style>
 
 <main id="returnsSection" class="returns" hidden>
   <section id="searchView">
     <div class="pallet-bar">
       <div class="text" id="palletText">Loading pallets…</div>
-      <button class="btn" id="newPallet" disabled>NEW PALLET</button>
-      <button class="btn light" id="seePallets">See pallets</button>
+      <div class="acts">
+        <button class="btn" id="newPallet" disabled>New pallet</button>
+        <button class="btn" id="seePallets">See pallets</button>
+      </div>
     </div>
-    <form class="search" id="form">
-      <input type="text" id="part" placeholder="Part number" autocomplete="off" autofocus>
-      <button class="go" type="submit">Search</button>
+    <form id="form">
+      <label class="big" for="part">Part number</label>
+      <div class="search">
+        <input type="text" id="part" autocomplete="off" autofocus>
+        <button class="btn primary" type="submit">Search</button>
+      </div>
     </form>
     <div class="msg" id="msg">Type the part number and press Search.</div>
     <div id="results"></div>
   </section>
 
   <section id="doneView" class="done" hidden>
-    <p>✓ Saved. Write this on the part:</p>
+    <div class="saved" role="status"><span aria-hidden="true">✓</span>Saved</div>
+    <p>Write this on the part</p>
     <div class="big" id="doneInvoice"></div>
     <div class="sub" id="doneSub"></div>
-    <div class="pallet" id="donePallet"></div>
-    <button id="next">NEXT PART</button>
-    <button id="undo" class="undo">UNDO — that was a mistake</button>
+    <div class="pallet"><span id="donePut">Put it on</span><b id="donePallet"></b></div>
+    <button class="btn primary" id="next">Next part</button>
+    <button class="link" id="undo">Undo — that was a mistake</button>
   </section>
 
   <section id="palletsView" hidden>
-    <button class="btn light" id="palletsBack">◀ Back to returns</button>
+    <button class="back" id="palletsBack">◀ Back to returns</button>
     <div id="palletsBody"></div>
   </section>
 
-  <div class="bar" id="bar"><button id="returnBtn" disabled>RETURN</button></div>
+  <div class="bar" id="bar">
+    <div class="in">
+      <div class="text" id="barText"></div>
+      <button class="btn primary" id="returnBtn" disabled>Return</button>
+    </div>
+  </div>
 </main>
 
 
@@ -216,31 +275,34 @@ function card(item) {
   const left = leftOf(item);
   const invoice = d ? d.invoice : item.returnedInvoice;
   let inv;
-  if (invoice) inv = '<div class="inv">Invoice ' + esc(invoice) + '</div>';
+  if (invoice) inv = '<div class="inv"><span>Invoice</span> ' + esc(invoice) + '</div>';
   else if (!d) inv = '<div class="inv reading">Reading invoice…</div>';
   else inv = '<div class="inv reading">Invoice number not found — open the PDF to check</div>';
-  let done = '';
+  let notes = '';
   if (r && off) {
-    done = '<span class="tag bad">Already returned' + (r.qty > 1 ? ' (' + r.qty + ')' : '') + ' on ' + esc(r.when) + '</span>'
-      + '<button class="again" data-again="' + esc(item.key) + '">return more from this invoice</button>'
-      + '<button class="again" data-undo="' + esc(item.key) + '">undo the last return</button>';
+    notes = '<span class="tag bad">Already returned' + (r.qty > 1 ? ' (' + r.qty + ')' : '') + ' on ' + esc(r.when) + '</span>'
+      + '<button class="again" data-again="' + esc(item.key) + '">Return more from this invoice</button>'
+      + '<button class="again" data-undo="' + esc(item.key) + '">Undo the last return</button>';
   } else if (r) {
-    done = '<span class="tag warn">' + r.qty + (shipped !== null ? ' of ' + shipped : '') + ' already returned, last on '
+    notes = '<span class="tag warn">' + r.qty + (shipped !== null ? ' of ' + shipped : '') + ' already returned, last on '
       + esc(r.when) + (left !== null ? ' — ' + Math.max(left, 0) + ' left' : '') + '</span>'
-      + '<button class="again" data-undo="' + esc(item.key) + '">undo the last return</button>';
+      + '<button class="again" data-undo="' + esc(item.key) + '">Undo the last return</button>';
+  } else if (!sel && shipped !== null) {
+    notes = '<span class="tag">' + shipped + ' shipped on this invoice</span>';
   }
-  return '<div class="card' + (sel ? ' sel' : '') + (off ? ' off' : '') + '" data-key="' + esc(item.key) + '">'
-    + '<div class="top"><b>' + esc(item.supplier) + '</b><span>' + esc(item.dateText) + '</span></div>'
-    + inv
-    + (d && d.line ? '<div class="line">' + esc(d.line) + '</div>' : '')
-    + (!sel && !r && shipped !== null ? '<div class="shipped">' + shipped + ' shipped on this invoice</div>' : '')
-    + done
-    + (d && !d.found && !d.error ? '<span class="tag warn">Part number not seen in this PDF</span>' : '')
-    + (d && d.error ? '<span class="tag warn">Could not read this PDF</span>' : '')
-    + '<div><a href="https://mail.google.com/mail/u/0/#all/' + esc(item.threadId) + '" target="_blank">Open email</a></div>'
-    + (sel ? howMany(item)
-        + '<div class="fix"><label>Invoice number (fix it if it does not match the PDF):</label>'
-        + '<input type="text" id="invoiceFix" value="' + esc(currentInvoice()) + '"></div>' : '')
+  if (d && !d.found && !d.error) notes += '<span class="tag warn">Part number not seen in this PDF</span>';
+  if (d && d.error) notes += '<span class="tag warn">Could not read this PDF</span>';
+  notes += '<a href="https://mail.google.com/mail/u/0/#all/' + esc(item.threadId) + '" target="_blank">Open email</a>';
+  return '<div class="card' + (sel ? ' sel' : '') + (off ? ' off' : '') + '" data-key="' + esc(item.key) + '"'
+    + (off ? '' : ' tabindex="0" role="button" aria-pressed="' + sel + '"') + '>'
+    + '<div class="top"><div class="who">' + esc(item.supplier) + ' · ' + esc(item.dateText) + inv
+    + (d && d.line ? '<div class="line">' + esc(d.line) + '</div>' : '') + '</div>'
+    + '<span class="tick" aria-hidden="true">' + (sel ? '✓' : '') + '</span></div>'
+    + '<div class="notes">' + notes + '</div>'
+    + (sel ? '<div class="chosen">' + howMany(item)
+        + '<div class="fix grow"><label for="invoiceFix">Invoice number</label>'
+        + '<input type="text" id="invoiceFix" value="' + esc(currentInvoice()) + '">'
+        + '<span class="hint">Fix it if it does not match the PDF.</span></div></div>' : '')
     + '</div>';
 }
 
@@ -253,21 +315,23 @@ function howMany(item) {
   let info;
   if (state.fixShipped || (shipped === null && d)) {
     const typed = state.shipped[item.key] !== undefined ? state.shipped[item.key] : (d && typeof d.shipped === 'number' ? d.shipped : '');
-    info = '<div class="fix"><label>' + (state.fixShipped ? 'How many were shipped on this invoice?'
+    info = '<div class="fix"><label for="shippedFix">' + (state.fixShipped ? 'How many were shipped on this invoice?'
         : 'Could not read how many were shipped. Check the PDF and type it here:') + '</label>'
       + '<input type="text" inputmode="numeric" id="shippedFix" value="' + esc(typed) + '"></div>';
   } else if (shipped !== null) {
-    info = '<div class="shipped">' + shipped + ' shipped on this invoice' + (r ? ', ' + r.qty + ' already returned' : '')
-      + ' <button class="again" data-fixshipped="1">wrong? change it</button></div>';
+    info = '<span class="hint">' + shipped + ' shipped' + (r ? ', ' + r.qty + ' already returned' : ', none returned yet')
+      + (left !== null && left > 0 ? ' — up to ' + left : '') + '</span>'
+      + '<button class="again" data-fixshipped="1">Shipped number wrong? Change it</button>';
   } else {
-    info = '<div class="shipped">Reading how many were shipped…</div>';
+    info = '<span class="hint">Reading how many were shipped…</span>';
   }
-  return '<div class="fix"><label>How many are you returning?</label>'
-    + '<div class="stepper"><button data-step="-1"' + (state.qty <= 1 ? ' disabled' : '') + '>−</button>'
-    + '<span class="n">' + state.qty + '</span>'
-    + '<button data-step="1"' + (state.qty >= maxQty() ? ' disabled' : '') + '>+</button></div></div>'
+  return '<div><div class="fix"><label>How many are you returning?</label></div>'
+    + '<div class="stepper"><button data-step="-1" aria-label="One fewer"' + (state.qty <= 1 ? ' disabled' : '') + '>−</button>'
+    + '<span class="n" aria-live="polite">' + state.qty + '</span>'
+    + '<button data-step="1" aria-label="One more"' + (state.qty >= maxQty() ? ' disabled' : '') + '>+</button></div>'
     + info
-    + (left !== null && left <= 0 ? '<span class="tag bad">None left to return on this invoice</span>' : '');
+    + (left !== null && left <= 0 ? '<span class="tag bad">None left to return on this invoice</span>' : '')
+    + '</div>';
 }
 
 // Most that can be returned from the selected invoice now.
@@ -301,10 +365,10 @@ function render() {
   } else if (!list.length) {
     showMsg('This part has already been returned on every invoice found.', true);
   } else {
-    showMsg(list.length + (list.length === 1 ? ' invoice' : ' invoices') +
-            ' where this part can still be returned. Tap one, then press RETURN.');
+    showMsg('<b>' + list.length + (list.length === 1 ? ' invoice' : ' invoices') + '</b>'
+      + ' where this part can still be returned. Tap one, then press Return.', false, true);
   }
-  if (state.note) $('msg').textContent = state.note + ' ' + $('msg').textContent;
+  if (state.note) $('msg').innerHTML = esc(state.note) + ' ' + $('msg').innerHTML;
   $('results').innerHTML = list.map(card).join('')
     + (gone.length ? '<p class="msg"><button class="again" data-toggle="1">'
         + (state.showReturned ? 'Hide' : 'Show') + ' ' + gone.length + ' already returned</button></p>' : '')
@@ -331,7 +395,14 @@ function currentInvoice() {
 }
 
 function updateButton() {
-  $('returnBtn').disabled = !(state && state.sel && currentInvoice().trim() && state.qty <= maxQty());
+  const item = selected();
+  const invoice = state && state.sel ? currentInvoice().trim() : '';
+  $('returnBtn').disabled = !(item && invoice && state.qty <= maxQty());
+  const p = openPallet();
+  $('barText').textContent = !state || !state.loaded ? ''
+    : item ? state.qty + ' × ' + state.part.toUpperCase() + (invoice ? ' on invoice ' + invoice.toUpperCase() : '')
+        + ' · pallet ' + (p ? p.number : nextPalletNumber())
+    : 'Tap an invoice above to choose it.';
 }
 
 $('results').addEventListener('click', e => {
@@ -358,9 +429,18 @@ $('results').addEventListener('click', e => {
     readAll(state.search);
     return;
   }
+  // Clicks inside the quantity / invoice box don't change the chosen invoice.
+  if (e.target.closest('.chosen')) return;
   const card = e.target.closest('.card');
   if (!card || card.classList.contains('off')) return;
   select(card.dataset.key);
+});
+
+$('results').addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.card[tabindex]')) {
+    e.preventDefault();
+    select(e.target.dataset.key);
+  }
 });
 
 function select(key) {
@@ -378,15 +458,17 @@ $('returnBtn').addEventListener('click', async () => {
     const res = await call('recordReturn', item, state.part, invoice, state.qty);
     state.last = { item, invoice: res.invoice };
     $('doneInvoice').textContent = res.invoice;
-    $('doneSub').textContent = res.qty + ' × part ' + state.part.toUpperCase() + ' · ' + item.supplier;
-    $('donePallet').textContent = 'Put ' + (res.qty > 1 ? 'them' : 'it') + ' on Pallet ' + res.pallet;
+    $('doneSub').textContent = res.qty + ' × ' + state.part.toUpperCase() + ' · ' + item.supplier;
+    $('donePut').textContent = 'Put ' + (res.qty > 1 ? 'them' : 'it') + ' on';
+    $('donePallet').textContent = 'Pallet ' + res.pallet;
     showView('done');
+    $('next').focus();
     loadPallets();
   } catch (err) {
     alert('Could not save: ' + err.message);
     updateButton();
   }
-  $('returnBtn').textContent = 'RETURN';
+  $('returnBtn').textContent = 'Return';
 });
 
 $('next').addEventListener('click', () => {
@@ -418,7 +500,11 @@ async function undoReturn(item, part, invoice) {
   runSearch(part, '✓ Return undone.');
 }
 
-function showMsg(text, err) { $('msg').textContent = text; $('msg').className = 'msg' + (err ? ' err' : ''); }
+// `html`: the text has markup in it (already escaped).
+function showMsg(text, err, html) {
+  if (html) $('msg').innerHTML = text; else $('msg').textContent = text;
+  $('msg').className = 'msg' + (err ? ' err' : '');
+}
 
 // ---------------------------------------------------------------------------
 // Pallets
@@ -436,10 +522,11 @@ function setPallets(list) {
   pallets = list;
   const p = openPallet();
   $('palletText').innerHTML = p
-    ? 'Putting returns on <b>Pallet ' + p.number + '</b> · ' + (p.qty ? partsText(p.qty) : 'empty so far')
+    ? '<b>Pallet ' + p.number + '</b> · ' + (p.qty ? partsText(p.qty) : 'empty so far') + ' · started ' + esc(p.started)
     : 'No pallet started yet. The next return starts Pallet ' + nextPalletNumber() + '.';
   $('newPallet').disabled = !p || !p.qty;
   if (pv) renderPallets();
+  updateButton();
 }
 
 $('newPallet').addEventListener('click', async () => {
@@ -465,40 +552,40 @@ $('palletsBack').addEventListener('click', () => {
 });
 
 function palletDates(p) {
-  if (p.open) return 'Started ' + p.started + ' · still open';
-  return p.started + (p.finished && p.finished !== p.started ? ' to ' + p.finished : '');
+  if (p.open) return 'Started ' + p.started;
+  return p.started + (p.finished && p.finished !== p.started ? ' – ' + p.finished : '');
 }
 
 function renderPallets() {
   $('palletsBack').textContent = pv.show ? '◀ All pallets' : '◀ Back to returns';
   if (!pv.show) {
     $('palletsBody').innerHTML = '<h2 class="ptitle">Pallets</h2>'
-      + (pallets.length ? '' : '<p class="msg">No pallets yet.</p>')
-      + pallets.map(p => '<div class="card' + (p.open ? ' sel' : '') + '" data-pallet="' + p.number + '">'
-        + '<div class="top"><b>Pallet ' + p.number + '</b><span>' + esc(palletDates(p)) + '</span></div>'
-        + '<div class="inv">' + partsText(p.qty) + '</div>'
-        + (p.open ? '<span class="tag ok">New returns go on this pallet</span>' : '')
-        + '</div>').join('');
+      + (pallets.length ? '' : '<p class="psub">No pallets yet.</p>')
+      + pallets.map(p => '<button class="pal' + (p.open ? ' open' : '') + '" data-pallet="' + p.number + '">'
+        + '<span><span class="name">Pallet ' + p.number + '</span>'
+        + '<span class="dates">' + esc(palletDates(p)) + ' · ' + partsText(p.qty) + '</span>'
+        + (p.open ? '<span class="openmark">● New returns go on this pallet</span>' : '') + '</span>'
+        + '<span class="arrow" aria-hidden="true">▶</span></button>').join('');
     return;
   }
   const p = pallets.find(x => x.number === pv.show);
   if (!p) { pv = { show: null }; renderPallets(); return; }
   const others = pallets.filter(x => x.number !== p.number).map(x => x.number).sort((a, b) => a - b);
   const line = l => '<div class="pline">'
-    + '<div class="what"><b>' + esc(l.part) + '</b> × ' + l.qty + '<span>Invoice ' + esc(l.invoice) + ' · ' + esc(l.when) + '</span></div>'
-    + '<button class="btn light" data-move="' + esc(l.id) + '">Move to pallet…</button>'
-    + '<button class="btn delete" data-delete="' + esc(l.id) + '">Delete</button>'
+    + '<div class="what"><b>' + esc(l.part) + '</b> <em>× ' + l.qty + '</em><span>Invoice ' + esc(l.invoice) + ' · ' + esc(l.when) + '</span></div>'
+    + '<button class="btn" data-move="' + esc(l.id) + '">Move to pallet…</button>'
+    + '<button class="btn danger" data-delete="' + esc(l.id) + '">Delete</button>'
     + (pv.moving === l.id ? '<div class="pick">' + (others.length
-        ? 'Move to: ' + others.map(n => '<button class="btn" data-to="' + n + '">Pallet ' + n + '</button>').join('')
-        : 'There is no other pallet yet. Press NEW PALLET first.')
-      + '<button class="again" data-cancel="1">cancel</button></div>' : '')
+        ? 'Move to ' + others.map(n => '<button class="btn primary" data-to="' + n + '">Pallet ' + n + '</button>').join('')
+        : 'There is no other pallet yet. Press New pallet first.')
+      + '<button class="link" data-cancel="1">Cancel</button></div>' : '')
     + '</div>';
   $('palletsBody').innerHTML = '<h2 class="ptitle">Pallet ' + p.number + '</h2>'
-    + '<p class="msg">' + esc(palletDates(p)) + ' · ' + partsText(p.qty) + '</p>'
-    + (p.open ? '<span class="tag ok">New returns go on this pallet</span>'
-        : '<button class="btn" data-reopen="' + p.number + '">Add more to this pallet</button>')
-    + (!pv.lines ? '<p class="msg">Loading…</p>'
-        : pv.lines.length ? pv.lines.map(line).join('') : '<p class="msg">Nothing on this pallet.</p>');
+    + '<p class="psub">' + esc(palletDates(p)) + ' · ' + partsText(p.qty) + '</p>'
+    + (p.open ? '<span class="openmark">● New returns go on this pallet</span>'
+        : '<button class="btn primary" data-reopen="' + p.number + '">Add more to this pallet</button>')
+    + (!pv.lines ? '<p class="psub">Loading…</p>'
+        : pv.lines.length ? '<div class="plines">' + pv.lines.map(line).join('') + '</div>' : '<p class="psub">Nothing on this pallet.</p>');
 }
 
 async function showPallet(number) {
@@ -514,12 +601,9 @@ async function showPallet(number) {
 
 $('palletsBody').addEventListener('click', async e => {
   const b = e.target.closest('button');
-  if (!b) {
-    const c = e.target.closest('[data-pallet]');
-    if (c) showPallet(Number(c.dataset.pallet));
-    return;
-  }
-  if (b.dataset.move) { pv.moving = b.dataset.move; renderPallets(); return; }
+  if (!b) return;
+  if (b.dataset.pallet) { showPallet(Number(b.dataset.pallet)); return; }
+  if (b.dataset.move) { pv.moving = pv.moving === b.dataset.move ? null : b.dataset.move; renderPallets(); return; }
   if (b.dataset.cancel) { pv.moving = null; renderPallets(); return; }
   if (b.dataset.to) {
     b.disabled = true;

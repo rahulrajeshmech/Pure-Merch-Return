@@ -88,16 +88,34 @@ Do this signed in to the Google account that **receives the supplier invoices**.
    the Web app URL, open that, and create a second shortcut named **Staff schedule**.
 9. Open **Scheduling → Make changes → Master scheduling** to add the team.
 
-### Upgrading an existing Apps Script project
+### Upgrading from the old returns tool (Pure-Merch-Return)
 
-If your Apps Script still has a file called `Code` from an earlier version, it is now called `Returns`:
+If the sheet still runs the first version of the tool (Apps Script files `Code`, `Index` and
+`appsscript.json` only), this moves it to PureTech. Your returns are kept: the first time the new
+version opens, it puts every earlier return on **Pallet 1** with quantity 1. The **Supplier** and
+**Email Subject** columns are not kept in the new Returns tab, which is why step 1 makes a copy.
 
-1. Open the Google Sheet → **Extensions → Apps Script**.
-2. Click **+ → Script**, name it `Returns`, and paste in `returns/Returns.gs`.
-3. Click **⋮** next to `Code` → **Delete**.
-4. Add any other file from the table above that is missing, and replace the ones that changed.
-5. **Deploy → Manage deployments → pencil ✎ → Version: New version → Deploy**.
-6. Reload the tool. Your returns and schedule data stay as they are.
+1. Open the Google Sheet → **File → Make a copy**, and name it e.g. *Returns backup 20 Oct*.
+2. Go back to the original sheet → **Extensions → Apps Script**.
+3. Click **+ → Script**, name it `Main`, select all (**Ctrl + A**), delete, and paste in `app/Main.gs`.
+4. Do the same for `Returns` (`returns/Returns.gs`) and `Schedule` (`scheduling/Schedule.gs`).
+5. Click `Index` on the left, select all, delete, and paste in `app/Index.html`.
+6. Click **+ → HTML**, name it `ReturnsPage`, and paste in `returns/ReturnsPage.html`.
+   Do the same for `SchedulePage` (`scheduling/SchedulePage.html`).
+7. Delete the old file: hover over `Code` → **⋮ → Delete**. (It clashes with the new files.)
+   `appsscript.json` stays as it is.
+8. Press **Ctrl + S**. No red error line should appear at the top.
+9. **Deploy → Manage deployments → pencil ✎ → Version: New version → Deploy**. If Google asks to
+   authorise again: choose your account → **Advanced** → **Go to … (unsafe)** → **Allow**.
+10. Reload the tool in Chrome (same link, same shortcut). The first load takes a little longer: the sheet
+    is renamed **PureTech**, earlier returns move onto Pallet 1, and the By Pallet and Schedule tabs appear.
+11. Check: search a part you returned before; it shows as already returned.
+12. Open **Scheduling → Make changes → Master scheduling**, add the team and the minimum per day, and press
+    **Save master schedule**. Optional: a second shortcut to the link with `?section=scheduling` on the end.
+
+**If something goes wrong:** in Apps Script, **Deploy → Manage deployments → pencil ✎ → Version:** pick the
+previous version → **Deploy**. Then in the sheet, **File → Version history → See version history** and restore
+the version from before step 10. The copy from step 1 is a second safety net.
 
 ### Updating to a new version of the code
 
